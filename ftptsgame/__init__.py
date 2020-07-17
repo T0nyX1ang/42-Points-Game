@@ -55,15 +55,14 @@ class GameApp(object):
     def get_current_solved(self) -> str:
         """Get current valid solutions. Effective when playing."""
         line = []
-        if self.is_playing():
-            if len(self.__valid) > 0:
-                line.append('有效求解:')
-                total = 1
-                for valid_expr in self.__valid:
-                    line.append('[%d] %s' % (total, valid_expr))
-                    total += 1
-            else:
-                line.append('当前暂无有效求解')
+        if len(self.__valid) > 0:
+            line.append('有效求解:')
+            total = 1
+            for valid_expr in self.__valid:
+                line.append('[%d] %s' % (total, valid_expr))
+                total += 1
+        else:
+            line.append('当前暂无有效求解')
         message = ''
         for each_line in line:
             message = message + each_line + '\n'
