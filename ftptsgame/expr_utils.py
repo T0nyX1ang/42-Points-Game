@@ -1,7 +1,7 @@
 """Deal with expressions."""
 
 from fractions import Fraction
-from exceptions import UnsupportedSyntaxError
+from .exceptions import UnsupportedSyntaxError
 import ast
 import random
 

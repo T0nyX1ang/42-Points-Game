@@ -1,9 +1,9 @@
 """Main module of this project."""
 
-from database import DATABASE_42
-from expr_utils import expr_eval, judge_equivalent
-from exceptions import (UnmatchedNumberError, WrongAnswerError,
-                        UnsupportedSyntaxError, RepeatedAnswerError)
+from .database import DATABASE_42
+from .expr_utils import expr_eval, judge_equivalent
+from .exceptions import (UnmatchedNumberError, WrongAnswerError,
+                         UnsupportedSyntaxError, RepeatedAnswerError)
 import random
 import ast
 
