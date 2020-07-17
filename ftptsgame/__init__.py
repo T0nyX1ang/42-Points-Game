@@ -18,6 +18,8 @@ class GameApp(object):
     generate_problem(): generate a problem from database. (+-)
     get_current_problem(): print current problem. (+)
     get_current_solved(): print current solutions. (+)
+    get_current_solution_number(): print current solution number. (+)
+    get_total_solution_number(): print total solution number. (+)
     start(): start the game. (-)
     stop(): stop the game. (+)
     solve(): put forward a solution. (+)
@@ -67,6 +69,14 @@ class GameApp(object):
             message = message + each_line + '\n'
         return message.strip()
 
+    def get_current_solution_number(self) -> int:
+        """Get the number of current solutions. Effective when playing."""
+        return len(self.__valid)
+
+    def get_total_solution_number(self) -> int:
+        """Get the number of total solutions. Effective when playing."""
+        return DATABASE_42[self.__problem]
+
     def __validate(self, math_expr: str) -> str:
         """Validate distinguishing expressions. Private method."""
         for ind in range(0, len(self.__formula)):
@@ -105,12 +115,10 @@ class GameApp(object):
         """Start the game. Effective when not playing."""
         self.__problem = self.generate_problem(minimum_solutions,
                                                maximum_solutions)
-        self.__total_solutions = DATABASE_42[self.__problem]
-        self.__current_solutions = len(self.__valid)
+        self.__valid = []
+        self.__formula = []
         self.__playing = True
 
     def stop(self) -> str:
         """Stop the game. Effective when playing."""
         self.__playing = False
-        self.__valid = []
-        self.__formula = []
