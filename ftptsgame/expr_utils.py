@@ -1,6 +1,7 @@
 """Deal with expressions."""
 
 from fractions import Fraction
+from exceptions import UnsupportedSyntaxError
 import ast
 import random
 
@@ -56,25 +57,22 @@ def expr_eval(node, simplified, orig_num):
         elif isinstance(op, ast.Div) and rval != 0:
             result, new_simplified = lval / rval, left + '/' + right
         elif isinstance(op, ast.Div) and rval == 0:
-            raise ZeroDivisionError('Division by 0.')
+            raise UnsupportedSyntaxError('被除数为0')
         else:
-            print(lval, rval, type(op))
-            raise SyntaxError(
-                'Only Add, Sub, Mult and Div operators are supported.')
-
+            raise UnsupportedSyntaxError('不支持的运算符')
         return result, new_simplified, orig_num
 
     elif isinstance(node, ast.Num):
         number = node.n
         if type(number) is not int:
-            raise ValueError('User input number must be integers.')
+            raise UnsupportedSyntaxError('不支持浮点数计算')
         orig_num.append(number)
         if number not in [0, 1]:
             return Fraction(number), chr(number + 97), orig_num
         else:
             return Fraction(number), str(number), orig_num
     else:
-        raise SyntaxError('Only binary operators are supported.')
+        raise UnsupportedSyntaxError('不支持的运算符')
 
 
 def judge_equivalent(problem, expr_1, expr_2):
@@ -90,12 +88,9 @@ def judge_equivalent(problem, expr_1, expr_2):
             temp_expr_2 = temp_expr_2.replace(
                 chr(problem[i] + 97),
                 str(random_number[i + current * len(problem)]))
-        try:
-            temp_ast_1 = ast.parse(temp_expr_1, mode='eval').body
-            temp_ast_2 = ast.parse(temp_expr_2, mode='eval').body
-            if expr_eval(temp_ast_1, '',
-                         [])[0] == expr_eval(temp_ast_2, '', [])[0]:
-                return True
-        except Exception as e:
-            print(e, expr_1, temp_expr_1, expr_2, temp_expr_2)
+        temp_ast_1 = ast.parse(temp_expr_1, mode='eval').body
+        temp_ast_2 = ast.parse(temp_expr_2, mode='eval').body
+        if expr_eval(temp_ast_1, '',
+                     [])[0] == expr_eval(temp_ast_2, '', [])[0]:
+            return True
     return False
