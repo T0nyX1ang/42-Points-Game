@@ -3,7 +3,7 @@
 
 __all__ = ('UnmatchedNumberError', 'WrongAnswerError',
            'UnsupportedSyntaxError', 'RepeatedAnswerError',
-           'GameStatusError')
+           'GameStatusError', 'ProblemError')
 
 
 class UnmatchedNumberError(Exception):
@@ -79,8 +79,24 @@ class GameStatusError(Exception):
 
     def __repr__(self):
         """Print out."""
-        ref = {True: 'PLAYING', False: 'NOT PLAYING'}
-        return 'Required status: %s' % (ref[self.__status])
+        ref = {True: '游玩', False: '非游玩'}
+        return '调用方法的状态错误[所需状态: %s]' % (ref[self.__status])
+
+    def __str__(self):
+        """Print out."""
+        return self.__repr__()
+
+
+class ProblemError(Exception):
+    """This error is raised when the problem is not generated properly."""
+
+    def __init__(self, info):
+        """Initialization."""
+        self.__info = info
+
+    def __repr__(self):
+        """Print out."""
+        return '生成题目异常[%s]' % (self.__info)
 
     def __str__(self):
         """Print out."""
