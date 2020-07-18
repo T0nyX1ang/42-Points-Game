@@ -2,7 +2,8 @@
 
 
 __all__ = ('UnmatchedNumberError', 'WrongAnswerError',
-           'UnsupportedSyntaxError', 'RepeatedAnswerError')
+           'UnsupportedSyntaxError', 'RepeatedAnswerError',
+           'GameStatusError')
 
 
 class UnmatchedNumberError(Exception):
@@ -63,6 +64,23 @@ class RepeatedAnswerError(Exception):
     def __repr__(self):
         """Print out."""
         return '你的结果与解[%s]重复了' % (self.__repeated)
+
+    def __str__(self):
+        """Print out."""
+        return self.__repr__()
+
+
+class GameStatusError(Exception):
+    """This error is raised when an answer is repeated."""
+
+    def __init__(self, status):
+        """Initialization."""
+        self.__status = status
+
+    def __repr__(self):
+        """Print out."""
+        ref = {True: 'PLAYING', False: 'NOT PLAYING'}
+        return 'Required status: %s' % (ref[self.__status])
 
     def __str__(self):
         """Print out."""
