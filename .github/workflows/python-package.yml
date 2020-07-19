@@ -39,10 +39,9 @@ jobs:
       run: |
         pip install pytest pytest-cov pytest-randomly
         pytest --cov=./ftptsgame --cov-report=xml -p no:warnings
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1.0.5
+    - name: Codecov
+      uses: codecov/codecov-action@v1.0.11
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
         name: "42Points"
-        fail_ci_if_error: true
