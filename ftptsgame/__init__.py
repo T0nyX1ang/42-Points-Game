@@ -73,30 +73,15 @@ class GameApp(object):
         else:
             raise ProblemError('生成题目的方法错误')
 
-    def get_current_problem(self) -> str:
+    def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
         self.__status_check(required_status=True)
-        message = '本次42点的题目为: %d %d %d %d %d' % (
-            self.__problem[0], self.__problem[1], self.__problem[2],
-            self.__problem[3], self.__problem[4])
-        return message
+        return self.__problem
 
-    def get_current_solved(self) -> str:
+    def get_current_solutions(self) -> list:
         """Get current valid solutions. Effective when playing."""
         self.__status_check(required_status=True)
-        line = []
-        if len(self.__valid) > 0:
-            line.append('有效求解:')
-            total = 1
-            for valid_expr in self.__valid:
-                line.append('[%d] %s' % (total, valid_expr))
-                total += 1
-        else:
-            line.append('当前暂无有效求解')
-        message = ''
-        for each_line in line:
-            message = message + each_line + '\n'
-        return message.strip()
+        return self.__valid
 
     def get_current_solution_number(self) -> int:
         """Get the number of current solutions. Effective when playing."""
