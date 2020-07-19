@@ -2,14 +2,12 @@
 
 from .database import DATABASE_42
 from .expr_utils import expr_eval, judge_equivalent
-from .exceptions import (UnmatchedNumberError, WrongAnswerError,
-                         UnsupportedSyntaxError, RepeatedAnswerError,
-                         GameStatusError, ProblemError)
+from .exceptions import FTPtsGameError
 import random
 import ast
 
 
-class GameApp(object):
+class FTPtsGame(object):
     """
     The main game.
 
@@ -17,8 +15,8 @@ class GameApp(object):
     __init__(): initialization. (Entry point)
     is_playing(): show the status of current game. (+-)
     generate_problem(): generate a problem from database or on custom. (-)
-    get_current_problem(): print current problem. (+)
-    get_current_solved(): print current solutions. (+)
+    get_current_problem(): get current problem (tuple). (+)
+    get_current_solutions(): get current solutions (list). (+)
     get_current_solution_number(): print current solution number. (+)
     get_total_solution_number(): print total solution number. (+)
     start(): start the game. (-)
@@ -32,16 +30,16 @@ class GameApp(object):
         self.__formula = []  # this list stores converted formulas
         self.__playing = False  # this stores playing status
 
-    def __status_check(self, required_status=True):
+    def __status_check(self, required_status: bool=True):
         """A status checker."""
         if required_status != self.is_playing():
-            raise GameStatusError(required_status)
+            raise FTPtsGameError(0x00, required_status)
 
     def is_playing(self) -> bool:
         """Incicate the game is started or not."""
         return self.__playing
 
-    def __generate_problem_from_database(self, **kwargs):
+    def __generate_problem_from_database(self, **kwargs) -> tuple:
         """Generate a problem from database."""
         minimum_solutions = kwargs[
             'minimum_solutions'] if 'minimum_solutions' in kwargs else 3
@@ -53,17 +51,17 @@ class GameApp(object):
         ]
         return random.choice(problem_list)
 
-    def __generate_problem_by_user(self, **kwargs):
+    def __generate_problem_by_user(self, **kwargs) -> tuple:
         """Generate a problem by user."""
         try:
             problem = tuple(sorted(list(kwargs['problem'])))
-        except Exception:
-            raise ProblemError('问题无法被解析')
+        except Exception as e:
+            raise FTPtsGameError(0x01, e)
         if problem not in DATABASE_42:
-            raise ProblemError('输入的问题无解')
+            raise FTPtsGameError(0x02, problem)
         return problem
 
-    def generate_problem(self, method, **kwargs) -> tuple:
+    def generate_problem(self, method: str, **kwargs) -> tuple:
         """Generate a random problem from the database."""
         self.__status_check(required_status=False)
         if method == 'database':
@@ -71,7 +69,7 @@ class GameApp(object):
         elif method == 'custom':
             self.__problem = self.__generate_problem_by_user(**kwargs)
         else:
-            raise ProblemError('生成题目的方法错误')
+            raise FTPtsGameError(0x02, method)
 
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
@@ -93,48 +91,48 @@ class GameApp(object):
         self.__status_check(required_status=True)
         return DATABASE_42[self.__problem]
 
-    def __validate(self, math_expr: str) -> str:
+    def __validate_repeated(self, math_expr: str):
         """Validate distinguishing expressions. Private method."""
         for ind in range(0, len(self.__formula)):
             curr_expr = self.__formula[ind]
             if judge_equivalent(self.__problem, math_expr, curr_expr):
-                raise RepeatedAnswerError(self.__valid[ind])
+                raise FTPtsGameError(0x22, self.__valid[ind])
 
-    def solve(self, math_expr: str) -> str:
+    def solve(self, math_expr: str):
         """Put forward a solution."""
         self.__status_check(required_status=True)
         math_expr = math_expr.replace(' ', '').replace('（',
                                                        '(').replace('）', ')')
 
         if len(math_expr) >= 30:
-            raise UnsupportedSyntaxError('待识别的公式过长')
+            raise FTPtsGameError(0x10, len(math_expr))
 
         try:
             expr_ast = ast.parse(math_expr, mode='eval').body
-        except Exception:
-            raise UnsupportedSyntaxError('公式无法被解析')
+        except Exception as e:
+            raise FTPtsGameError(0x11, e)
 
         math_expr_value, simplified_expr, user_input_numbers = expr_eval(
             expr_ast, '', [])
 
         if math_expr_value != 42:
-            raise WrongAnswerError(math_expr_value)
+            raise FTPtsGameError(0x20, math_expr_value)
 
         if tuple(sorted(user_input_numbers)) != self.__problem:
-            raise UnmatchedNumberError(user_input_numbers)
+            raise FTPtsGameError(0x21, tuple(sorted(user_input_numbers)))
 
-        self.__validate(simplified_expr)
+        self.__validate_repeated(simplified_expr)
         self.__formula.append(simplified_expr)
         self.__valid.append(math_expr)
 
-    def start(self) -> str:
+    def start(self):
         """Start the game. Effective when not playing."""
         self.__status_check(required_status=False)
         self.__valid = []
         self.__formula = []
         self.__playing = True
 
-    def stop(self) -> str:
+    def stop(self):
         """Stop the game. Effective when playing."""
         self.__status_check(required_status=True)
         self.__playing = False
