@@ -12,7 +12,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
     name='42Points',
-    version='1.0.1',
+    version='1.0.2',
     author='Tony Xiang',
     author_email='tonyxfy@qq.com',
     description='Python implementation of the fourty-two points game.',
