@@ -1,7 +1,7 @@
 """Deal with expressions."""
 
 from fractions import Fraction
-from .exceptions import UnsupportedSyntaxError
+from .exceptions import FTPtsGameError
 import ast
 import random
 
@@ -57,22 +57,22 @@ def expr_eval(node, simplified, orig_num):
         elif isinstance(op, ast.Div) and rval != 0:
             result, new_simplified = lval / rval, left + '/' + right
         elif isinstance(op, ast.Div) and rval == 0:
-            raise UnsupportedSyntaxError('被除数为0')
+            raise FTPtsGameError(0x13)
         else:
-            raise UnsupportedSyntaxError('不支持的运算符')
+            raise FTPtsGameError(0x12, type(op))
         return result, new_simplified, orig_num
 
     elif isinstance(node, ast.Num):
         number = node.n
         if type(number) is not int:
-            raise UnsupportedSyntaxError('不支持浮点数计算')
+            raise FTPtsGameError(0x14, number)
         orig_num.append(number)
         if number not in [0, 1]:
             return Fraction(number), chr(number + 97), orig_num
         else:
             return Fraction(number), str(number), orig_num
     else:
-        raise UnsupportedSyntaxError('不支持的运算符')
+        raise FTPtsGameError(0x12, type(node))
 
 
 def judge_equivalent(problem, expr_1, expr_2):
