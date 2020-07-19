@@ -1,103 +1,42 @@
-"""Exception classes used in the project."""
+"""Exception classes used in the package."""
+
+__all__ = ('FTPtsGameError')
 
 
-__all__ = ('UnmatchedNumberError', 'WrongAnswerError',
-           'UnsupportedSyntaxError', 'RepeatedAnswerError',
-           'GameStatusError', 'ProblemError')
+class FTPtsGameError(Exception):
+    """The whole module's global error collection."""
 
-
-class UnmatchedNumberError(Exception):
-    """This error is raised when met an unmatched input set."""
-
-    def __init__(self, user_input):
+    def __init__(self, err_no: int, hint='-'):
         """Initialization."""
-        self.__user_input = str(sorted(user_input)).replace(',', '')
+        self.__err_no = err_no
+        self.__hint = hint
 
     def __repr__(self):
-        """Print out."""
-        return '你使用的数字%s与题目所给的不符' % (self.__user_input)
+        """Print out, used in print() function."""
+        reference_code = {
+            0x00: 'StatusError:RequireCertainStatus',
+            0x01: 'ProblemGenerateError:FailedtoParse',
+            0x02: 'ProblemGenerateError:NoSolution',
+            0x03: 'ProblemGenerateError:MethodNotFound',
+            0x10: 'FormatError:ExpressionTooLong',
+            0x11: 'FormatError:FailedtoParse',
+            0x12: 'FormatError:UnallowedOperator',
+            0x13: 'FormatError:DivisionByZero',
+            0x14: 'FormatError:NotAnInteger',
+            0x20: 'AnswerError:WrongAnswer',
+            0x21: 'AnswerError:UnmatchedNumber',
+            0x22: 'AnswerError:RepeatedAnswer',
+        }  # This table might extend as more error types are included
+
+        message = '%s[%s]' % (
+            reference_code[self.__err_no], str(self.__hint)
+        ) if self.__err_no in reference_code else 'UnknownError:ErrnoNotFound'
+        return message
 
     def __str__(self):
-        """Print out."""
+        """Print out, used in str() function."""
         return self.__repr__()
 
-
-class WrongAnswerError(Exception):
-    """This error is raised when a user's answer is wrong."""
-
-    def __init__(self, answer):
-        """Initialization."""
-        self.__answer = answer
-
-    def __repr__(self):
-        """Print out."""
-        return '你的结果[%s]是错误的' % (self.__answer)
-
-    def __str__(self):
-        """Print out."""
-        return self.__repr__()
-
-
-class UnsupportedSyntaxError(Exception):
-    """This error is raised when the parser can't recognize the syntax."""
-
-    def __init__(self, info):
-        """Initialization."""
-        self.__info = info
-
-    def __repr__(self):
-        """Print out."""
-        return '你的公式无法识别[%s]' % (self.__info)
-
-    def __str__(self):
-        """Print out."""
-        return self.__repr__()
-
-
-class RepeatedAnswerError(Exception):
-    """This error is raised when an answer is repeated."""
-
-    def __init__(self, repeated):
-        """Initialization."""
-        self.__repeated = repeated
-
-    def __repr__(self):
-        """Print out."""
-        return '你的结果与解[%s]重复了' % (self.__repeated)
-
-    def __str__(self):
-        """Print out."""
-        return self.__repr__()
-
-
-class GameStatusError(Exception):
-    """This error is raised when an answer is repeated."""
-
-    def __init__(self, status):
-        """Initialization."""
-        self.__status = status
-
-    def __repr__(self):
-        """Print out."""
-        ref = {True: '游玩', False: '非游玩'}
-        return '调用方法的状态错误[所需状态: %s]' % (ref[self.__status])
-
-    def __str__(self):
-        """Print out."""
-        return self.__repr__()
-
-
-class ProblemError(Exception):
-    """This error is raised when the problem is not generated properly."""
-
-    def __init__(self, info):
-        """Initialization."""
-        self.__info = info
-
-    def __repr__(self):
-        """Print out."""
-        return '生成题目异常[%s]' % (self.__info)
-
-    def __str__(self):
-        """Print out."""
-        return self.__repr__()
+    def get_details(self):
+        """Get details of the raised error's code and hint."""
+        return (self.__err_no, self.__hint)
