@@ -96,7 +96,7 @@ class FTPtsGame(object):
         for ind in range(0, len(self.__formula)):
             curr_expr = self.__formula[ind]
             if judge_equivalent(self.__problem, math_expr, curr_expr):
-                raise FTPtsGameError(0x22, self.__valid[ind])
+                raise FTPtsGameError(0x21, self.__valid[ind])
 
     def solve(self, math_expr: str):
         """Put forward a solution."""
@@ -119,7 +119,7 @@ class FTPtsGame(object):
             raise FTPtsGameError(0x20, math_expr_value)
 
         if tuple(sorted(user_input_numbers)) != self.__problem:
-            raise FTPtsGameError(0x21, tuple(sorted(user_input_numbers)))
+            raise FTPtsGameError(0x15, tuple(sorted(user_input_numbers)))
 
         self.__validate_repeated(simplified_expr)
         self.__formula.append(simplified_expr)

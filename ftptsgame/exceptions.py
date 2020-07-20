@@ -23,9 +23,9 @@ class FTPtsGameError(Exception):
             0x12: 'FormatError:UnallowedOperator',
             0x13: 'FormatError:DivisionByZero',
             0x14: 'FormatError:NotAnInteger',
+            0x15: 'FormatError:UnmatchedNumber',
             0x20: 'AnswerError:WrongAnswer',
-            0x21: 'AnswerError:UnmatchedNumber',
-            0x22: 'AnswerError:RepeatedAnswer',
+            0x21: 'AnswerError:RepeatedAnswer',
         }  # This table might extend as more error types are included
 
         message = '%s[%s]' % (
