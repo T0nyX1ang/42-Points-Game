@@ -1,4 +1,5 @@
 import unittest
+import datetime
 from fractions import Fraction
 from ftptsgame import FTPtsGame
 from ftptsgame.exceptions import FTPtsGameError
@@ -12,6 +13,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(FTPtsGameError, app.get_current_solutions)
         self.assertRaises(FTPtsGameError, app.get_current_solution_number)
         self.assertRaises(FTPtsGameError, app.get_total_solution_number)
+        self.assertRaises(FTPtsGameError, app.get_elapsed_time)
         self.assertRaises(FTPtsGameError, app.solve, '123')
         self.assertRaises(FTPtsGameError, app.stop)
 
@@ -20,6 +22,7 @@ class TestGameApp(unittest.TestCase):
         app.start()
         self.assertRaises(FTPtsGameError, app.start)
         self.assertRaises(FTPtsGameError, app.generate_problem, 'database', a=1, b=2)
+        self.assertIs(type(app.get_elapsed_time()), datetime.timedelta)
         self.assertEqual(app.get_total_solution_number(), DATABASE_42[(3, 4, 6, 7, 12)])
         self.assertRaises(FTPtsGameError, app.solve, '')
         self.assertRaises(FTPtsGameError, app.solve, '1'*30)
@@ -35,7 +38,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(FTPtsGameError, app.solve,'1+3.0')
         self.assertRaises(FTPtsGameError, app.solve,'1/0')
         self.assertEqual([], app.get_current_solutions())
-        app.solve('6*7+(12-3*4)')
+        self.assertIs(type(app.solve('6*7+(12-3*4)')), datetime.timedelta)
         self.assertRaises(FTPtsGameError, app.solve, '___123456___')
         # self.assertRaises(FTPtsGameError, app.solve('111111+ 22222 +33333 +55555'))
         # self.assertRaises(FTPtsGameError, app.solve, '6*(7 / 12)*3*4')
@@ -43,7 +46,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(FTPtsGameError, app.solve, '6*7*(12 / (3*4))')
         self.assertRaises(FTPtsGameError, app.solve, '(12-3*4)+6*7')
         self.assertEqual(app.get_current_solution_number(), 1)
-        app.solve('       （12      +      6  /     3)  *  （7    -   4)')
+        self.assertIs(type(app.solve('       （12      +      6  /     3)  *  （7    -   4)')), datetime.timedelta)
         self.assertEqual(['6*7+(12-3*4)', '(12+6/3)*(7-4)'], app.get_current_solutions())
 
         # Stop game
@@ -52,6 +55,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(FTPtsGameError, app.get_current_solutions)
         self.assertRaises(FTPtsGameError, app.get_current_solution_number)
         self.assertRaises(FTPtsGameError, app.get_total_solution_number)
+        self.assertRaises(FTPtsGameError, app.get_elapsed_time)
         self.assertRaises(FTPtsGameError, app.solve, '123' )
         self.assertRaises(FTPtsGameError, app.stop)
 
