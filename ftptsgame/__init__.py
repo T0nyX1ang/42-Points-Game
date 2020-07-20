@@ -5,6 +5,7 @@ from .expr_utils import expr_eval, judge_equivalent
 from .exceptions import FTPtsGameError
 import random
 import ast
+import datetime
 
 
 class FTPtsGame(object):
@@ -15,6 +16,7 @@ class FTPtsGame(object):
     __init__(): initialization. (Entry point)
     is_playing(): show the status of current game. (+-)
     generate_problem(): generate a problem from database or on custom. (-)
+    get_elapsed_time(): get the time elapsed between solutions. (+)
     get_current_problem(): get current problem (tuple). (+)
     get_current_solutions(): get current solutions (list). (+)
     get_current_solution_number(): print current solution number. (+)
@@ -38,6 +40,16 @@ class FTPtsGame(object):
     def is_playing(self) -> bool:
         """Incicate the game is started or not."""
         return self.__playing
+
+    def __refresh_timer(self):
+        """Refresh the timer. Private method."""
+        self.__timer = datetime.datetime.now()
+
+    def get_elapsed_time(self) -> datetime.timedelta:
+        """Get elapsed time between solutions. Effective when playing."""
+        self.__status_check(required_status=True)
+        elapsed = datetime.datetime.now() - self.__timer
+        return elapsed
 
     def __generate_problem_from_database(self, **kwargs) -> tuple:
         """Generate a problem from database."""
@@ -98,7 +110,7 @@ class FTPtsGame(object):
             if judge_equivalent(self.__problem, math_expr, curr_expr):
                 raise FTPtsGameError(0x21, self.__valid[ind])
 
-    def solve(self, math_expr: str):
+    def solve(self, math_expr: str) -> datetime.timedelta:
         """Put forward a solution."""
         self.__status_check(required_status=True)
         math_expr = math_expr.replace(' ', '').replace('（',
@@ -124,6 +136,9 @@ class FTPtsGame(object):
         self.__validate_repeated(simplified_expr)
         self.__formula.append(simplified_expr)
         self.__valid.append(math_expr)
+        elapsed = self.get_elapsed_time()
+        self.__refresh_timer()
+        return elapsed
 
     def start(self):
         """Start the game. Effective when not playing."""
@@ -131,6 +146,7 @@ class FTPtsGame(object):
         self.__valid = []
         self.__formula = []
         self.__playing = True
+        self.__refresh_timer()
 
     def stop(self):
         """Stop the game. Effective when playing."""
