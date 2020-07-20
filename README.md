@@ -16,6 +16,7 @@ This package is designed to __work as a core processing part__, providing:
 * Problem database
 * Problem generation (by user / in database)
 * Start / stop the game
+* Timer for solutions
 * Status reporting
 * Equivalent solution detection
 * A bunch of exceptions
@@ -36,7 +37,7 @@ After you have installed the package, you are almost done. If you want to try it
 ```py
     from ftptsgame import FTPtsGame
     app = FTPtsGame() # initialize
-    app.generate_problem() # generate a problem beforehand
+    app.generate_problem('database') # generate a problem beforehand
     app.start() # start the game
     app.get_current_problem() # show the problem
     app.solve('your solutions') # put forward a solution
