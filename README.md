@@ -17,9 +17,9 @@ This package is designed to __work as a core processing part__, providing:
 * Problem generation (by user / in database)
 * Start / stop the game
 * Timer for solutions
-* Status reporting
+* Player statistics
 * Equivalent solution detection
-* A bunch of exceptions
+* A bunch of APIs and exceptions
 
 This package is not designed to __fully implement everything__ with the game, so the formatting parts should be written by end-users. But don't worry, the API in this package is enough to create whatever you need.
 
