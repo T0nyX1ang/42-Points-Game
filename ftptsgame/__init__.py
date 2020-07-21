@@ -30,6 +30,7 @@ class FTPtsGame(object):
         """Start the game session, serving as an initialization."""
         self.__valid = []  # this list stores readable answers
         self.__formula = []  # this list stores converted formulas
+        self.__players = {}  # this dict stores player statistics
         self.__playing = False  # this stores playing status
 
     def __status_check(self, required_status: bool=True):
@@ -103,6 +104,11 @@ class FTPtsGame(object):
         self.__status_check(required_status=True)
         return DATABASE_42[self.__problem]
 
+    def get_current_player_statistics(self) -> dict:
+        """Get current player statistics. Effective when playing."""
+        self.__status_check(required_status=True)
+        return self.__players
+
     def __validate_repeated(self, math_expr: str):
         """Validate distinguishing expressions. Private method."""
         for ind in range(0, len(self.__formula)):
@@ -110,7 +116,18 @@ class FTPtsGame(object):
             if judge_equivalent(self.__problem, math_expr, curr_expr):
                 raise FTPtsGameError(0x21, self.__valid[ind])
 
-    def solve(self, math_expr: str) -> datetime.timedelta:
+    def __update_player_statistics(self, player_id: int):
+        """Update player statistics."""
+        if player_id not in self.__players:
+            self.__players[player_id] = [
+                self.get_current_solution_number()
+            ]
+        else:
+            self.__players[player_id].append(
+                self.get_current_solution_number()
+            )
+
+    def solve(self, math_expr: str, player_id: int = -1) -> datetime.timedelta:
         """Put forward a solution."""
         self.__status_check(required_status=True)
         math_expr = math_expr.replace(' ', '').replace('（',
@@ -136,6 +153,7 @@ class FTPtsGame(object):
         self.__validate_repeated(simplified_expr)
         self.__formula.append(simplified_expr)
         self.__valid.append(math_expr)
+        self.__update_player_statistics(player_id)
         elapsed = self.get_elapsed_time()
         self.__refresh_timer()
         return elapsed
@@ -145,8 +163,9 @@ class FTPtsGame(object):
         self.__status_check(required_status=False)
         self.__valid = []
         self.__formula = []
-        self.__playing = True
+        self.__players = {}
         self.__refresh_timer()
+        self.__playing = True
 
     def stop(self):
         """Stop the game. Effective when playing."""
