@@ -67,10 +67,8 @@ def _expr_eval(node, simplified, orig_num):
         if type(number) is not int:
             raise FTPtsGameError(0x14, number)
         orig_num.append(number)
-        if number not in [0, 1]:
-            return Fraction(number), chr(number + 97), orig_num
-        else:
-            return Fraction(number), str(number), orig_num
+        return Fraction(number), chr(number + 97), orig_num
+
     else:
         raise FTPtsGameError(0x12, type(node))
 
