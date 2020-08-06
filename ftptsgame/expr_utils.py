@@ -6,12 +6,12 @@ import ast
 import random
 
 
-def expr_eval(node, simplified, orig_num):
-    """Evaluate a expression."""
+def _expr_eval(node, simplified, orig_num):
+    """Core part of evaluating a expression."""
     if isinstance(node, ast.BinOp):
-        lval, left, orig_num = expr_eval(node.left, simplified, orig_num)
+        lval, left, orig_num = _expr_eval(node.left, simplified, orig_num)
         op = node.op
-        rval, right, orig_num = expr_eval(node.right, simplified, orig_num)
+        rval, right, orig_num = _expr_eval(node.right, simplified, orig_num)
 
         # add parenthesis
         if isinstance(op, (ast.Mult, ast.Div)) and isinstance(
@@ -75,6 +75,15 @@ def expr_eval(node, simplified, orig_num):
         raise FTPtsGameError(0x12, type(node))
 
 
+def expr_eval(math_expr):
+    """Entry point of evalutaing an expression."""
+    try:
+        expr_ast = ast.parse(math_expr, mode='eval').body
+    except Exception as e:
+        raise FTPtsGameError(0x11, e)
+    return _expr_eval(expr_ast, '', [])
+
+
 def judge_equivalent(problem, expr_1, expr_2):
     """Judge equivalent of two expressions."""
     count = 10
@@ -88,9 +97,6 @@ def judge_equivalent(problem, expr_1, expr_2):
             temp_expr_2 = temp_expr_2.replace(
                 chr(problem[i] + 97),
                 str(random_number[i + current * len(problem)]))
-        temp_ast_1 = ast.parse(temp_expr_1, mode='eval').body
-        temp_ast_2 = ast.parse(temp_expr_2, mode='eval').body
-        if expr_eval(temp_ast_1, '',
-                     [])[0] == expr_eval(temp_ast_2, '', [])[0]:
+        if expr_eval(temp_expr_1)[0] == expr_eval(temp_expr_2)[0]:
             return True
     return False
