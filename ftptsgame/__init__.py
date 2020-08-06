@@ -4,7 +4,6 @@ from .database import DATABASE_42
 from .expr_utils import expr_eval, judge_equivalent
 from .exceptions import FTPtsGameError
 import random
-import ast
 import datetime
 
 
@@ -33,7 +32,7 @@ class FTPtsGame(object):
         self.__players = {}  # this dict stores player statistics
         self.__playing = False  # this stores playing status
 
-    def __status_check(self, required_status: bool=True):
+    def __status_check(self, required_status: bool = True):
         """A status checker."""
         if required_status != self.is_playing():
             raise FTPtsGameError(0x00, required_status)
@@ -119,13 +118,10 @@ class FTPtsGame(object):
     def __update_player_statistics(self, player_id: int):
         """Update player statistics."""
         if player_id not in self.__players:
-            self.__players[player_id] = [
-                self.get_current_solution_number()
-            ]
+            self.__players[player_id] = [self.get_current_solution_number()]
         else:
             self.__players[player_id].append(
-                self.get_current_solution_number()
-            )
+                self.get_current_solution_number())
 
     def solve(self, math_expr: str, player_id: int = -1) -> datetime.timedelta:
         """Put forward a solution."""
@@ -136,13 +132,8 @@ class FTPtsGame(object):
         if len(math_expr) >= 30:
             raise FTPtsGameError(0x10, len(math_expr))
 
-        try:
-            expr_ast = ast.parse(math_expr, mode='eval').body
-        except Exception as e:
-            raise FTPtsGameError(0x11, e)
-
         math_expr_value, simplified_expr, user_input_numbers = expr_eval(
-            expr_ast, '', [])
+            math_expr)
 
         if math_expr_value != 42:
             raise FTPtsGameError(0x20, math_expr_value)
