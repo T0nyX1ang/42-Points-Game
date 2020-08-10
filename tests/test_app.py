@@ -1,5 +1,6 @@
 import unittest
 import datetime
+import random
 from fractions import Fraction
 from ftptsgame import FTPtsGame
 from ftptsgame.exceptions import FTPtsGameError
@@ -65,6 +66,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(FTPtsGameError, app.solve, '123' )
         self.assertRaises(FTPtsGameError, app.stop)
 
+        self.assertRaises(FTPtsGameError, app.generate_problem, method='custom')
         self.assertRaises(FTPtsGameError, app.generate_problem, method='custom', problem='12345')
         self.assertRaises(FTPtsGameError, app.generate_problem, method='custom', problem=123)
         self.assertRaises(FTPtsGameError, app.generate_problem, method='custom', problem=[0, 0, 0, 0, 0])
@@ -74,12 +76,24 @@ class TestGameApp(unittest.TestCase):
         self.assertEqual((0, 0, 0, 6, 7), app.get_current_problem())
         app.stop()
 
+        self.assertRaises(FTPtsGameError, app.generate_problem, method='probability')
+        self.assertRaises(FTPtsGameError, app.generate_problem, method='probability', prob=123)
+        self.assertRaises(FTPtsGameError, app.generate_problem, method='probability', prob=[1, 2, 2])
+        test_prob = [0] * len(DATABASE_42.keys())
+        r = random.randint(0, len(DATABASE_42.keys()) - 1)
+        test_prob[r] = 100
+        app.generate_problem('probability', prob=test_prob)
+        app.start()
+        self.assertEqual(list(DATABASE_42.keys())[r], app.get_current_problem()) 
+        app.stop()
+
 class TestException(unittest.TestCase):
     def test_exceptions(self):
         self.assertEqual(str(FTPtsGameError(0x00, True)), 'StatusError:RequireCertainStatus[True]')
         self.assertEqual(str(FTPtsGameError(0x01, SyntaxError('Unable to parse'))), 'ProblemGenerateError:FailedtoParse[Unable to parse]')
         self.assertEqual(str(FTPtsGameError(0x02, (0, 1, 2, 3, 4))), 'ProblemGenerateError:NoSolution[(0, 1, 2, 3, 4)]')
-        self.assertEqual(str(FTPtsGameError(0x03, 'wpalpek')), 'ProblemGenerateError:MethodNotFound[wpalpek]')
+        self.assertEqual(str(FTPtsGameError(0x04, 'wpalpek')), 'ProblemGenerateError:MethodNotFound[wpalpek]')
+        self.assertEqual(str(FTPtsGameError(0x03, 10)), 'ProblemGenerateError:UnmatchedProbLength[10]')
         self.assertEqual(str(FTPtsGameError(0x10, 40)), 'FormatError:ExpressionTooLong[40]')
         self.assertEqual(str(FTPtsGameError(0x11, OverflowError('xxxx'))), 'FormatError:FailedtoParse[xxxx]')
         self.assertEqual(str(FTPtsGameError(0x12, '_ast.Add')), 'FormatError:UnallowedOperator[_ast.Add]')
