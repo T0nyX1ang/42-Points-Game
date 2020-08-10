@@ -15,14 +15,14 @@ class FTPtsGame(object):
     __init__(): initialization. (Entry point)
     is_playing(): show the status of current game. (+-)
     generate_problem(): generate a problem from database or on custom. (-)
-    get_elapsed_time(): get the time elapsed between solutions. (+)
+    get_elapsed_time(): get the time elapsed during the game. (+)
     get_current_problem(): get current problem (tuple). (+)
     get_current_solutions(): get current solutions (list). (+)
     get_current_solution_number(): print current solution number. (+)
     get_total_solution_number(): print total solution number. (+)
     start(): start the game. (-)
     stop(): stop the game. (+)
-    solve(): put forward a solution. (+)
+    solve(): put forward a solution and show solution intervals. (+)
     """
 
     def __init__(self):
@@ -41,10 +41,6 @@ class FTPtsGame(object):
         """Incicate the game is started or not."""
         return self.__playing
 
-    def __refresh_timer(self):
-        """Refresh the timer. Private method."""
-        self.__timer = datetime.datetime.now()
-
     def get_elapsed_time(self) -> datetime.timedelta:
         """Get elapsed time between solutions. Effective when playing."""
         self.__status_check(required_status=True)
@@ -54,7 +50,7 @@ class FTPtsGame(object):
     def __generate_problem_from_database(self, **kwargs) -> tuple:
         """Generate a problem from database."""
         minimum_solutions = kwargs[
-            'minimum_solutions'] if 'minimum_solutions' in kwargs else 3
+            'minimum_solutions'] if 'minimum_solutions' in kwargs else 1
         maximum_solutions = kwargs[
             'maximum_solutions'] if 'maximum_solutions' in kwargs else 100
         problem_list = [
@@ -73,6 +69,23 @@ class FTPtsGame(object):
             raise FTPtsGameError(0x02, problem)
         return problem
 
+    def __generate_problem_by_probability(self, **kwargs) -> tuple:
+        """Generate a problem by frequency / probability."""
+        try:
+            prob_list = list(kwargs['prob'])
+            print(prob_list)
+        except Exception as e:
+            raise FTPtsGameError(0x01, e)
+        if len(prob_list) != len(DATABASE_42.keys()):
+            raise FTPtsGameError(0x03, len(prob_list))
+
+        r = random.random() * sum(prob_list)
+        cumulative_prob = 0.0
+        for problem, problem_prob in zip(DATABASE_42.keys(), prob_list):
+            cumulative_prob += problem_prob
+            if r < cumulative_prob:
+                return problem
+
     def generate_problem(self, method: str, **kwargs) -> tuple:
         """Generate a random problem from the database."""
         self.__status_check(required_status=False)
@@ -80,8 +93,10 @@ class FTPtsGame(object):
             self.__problem = self.__generate_problem_from_database(**kwargs)
         elif method == 'custom':
             self.__problem = self.__generate_problem_by_user(**kwargs)
+        elif method == 'probability':
+            self.__problem = self.__generate_problem_by_probability(**kwargs)
         else:
-            raise FTPtsGameError(0x02, method)
+            raise FTPtsGameError(0x04, method)
 
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
@@ -124,7 +139,7 @@ class FTPtsGame(object):
                 self.get_current_solution_number())
 
     def solve(self, math_expr: str, player_id: int = -1) -> datetime.timedelta:
-        """Put forward a solution."""
+        """Put forward a solution and show solution intervals if correct."""
         self.__status_check(required_status=True)
         math_expr = math_expr.replace(' ', '').replace('（',
                                                        '(').replace('）', ')')
@@ -145,8 +160,8 @@ class FTPtsGame(object):
         self.__formula.append(simplified_expr)
         self.__valid.append(math_expr)
         self.__update_player_statistics(player_id)
-        elapsed = self.get_elapsed_time()
-        self.__refresh_timer()
+        elapsed = self.get_elapsed_time() - self.__last
+        self.__last = elapsed
         return elapsed
 
     def start(self):
@@ -155,7 +170,8 @@ class FTPtsGame(object):
         self.__valid = []
         self.__formula = []
         self.__players = {}
-        self.__refresh_timer()
+        self.__timer = datetime.datetime.now()
+        self.__last = datetime.timedelta(seconds=0)  # A tag for each solution.
         self.__playing = True
 
     def stop(self):
