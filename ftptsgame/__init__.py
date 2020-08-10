@@ -73,7 +73,6 @@ class FTPtsGame(object):
         """Generate a problem by frequency / probability."""
         try:
             prob_list = list(kwargs['prob'])
-            print(prob_list)
         except Exception as e:
             raise FTPtsGameError(0x01, e)
         if len(prob_list) != len(DATABASE_42.keys()):
