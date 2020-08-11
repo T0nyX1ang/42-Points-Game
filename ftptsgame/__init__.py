@@ -174,7 +174,9 @@ class FTPtsGame(object):
         self.__last = datetime.timedelta(seconds=0)  # A tag for each solution.
         self.__playing = True
 
-    def stop(self):
+    def stop(self) -> datetime.timedelta:
         """Stop the game. Effective when playing."""
         self.__status_check(required_status=True)
+        elapsed = self.get_elapsed_time()
         self.__playing = False
+        return elapsed
