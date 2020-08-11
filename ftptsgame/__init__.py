@@ -159,9 +159,10 @@ class FTPtsGame(object):
         self.__formula.append(simplified_expr)
         self.__valid.append(math_expr)
         self.__update_player_statistics(player_id)
-        elapsed = self.get_elapsed_time() - self.__last
+        elapsed = self.get_elapsed_time()
+        interval = elapsed - self.__last
         self.__last = elapsed
-        return elapsed
+        return interval
 
     def start(self):
         """Start the game. Effective when not playing."""
