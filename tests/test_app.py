@@ -1,6 +1,7 @@
 import unittest
 import datetime
 import random
+import time
 from fractions import Fraction
 from ftptsgame import FTPtsGame
 from ftptsgame.exceptions import FTPtsGameError
@@ -104,3 +105,17 @@ class TestException(unittest.TestCase):
         self.assertEqual(str(FTPtsGameError(0x21, '6*7+0+0+0')), 'AnswerError:RepeatedAnswer[6*7+0+0+0]')
         self.assertEqual(FTPtsGameError(0x10, 123).get_details(), (0x10, 123))
         self.assertEqual(str(FTPtsGameError('not-existed', 'will-not-print-hint')), 'UnknownError:ErrnoNotFound')
+
+class ThrottleTest(unittest.TestCase):
+    
+    def test_throttle(self):
+        app = FTPtsGame()
+        app.generate_problem('custom', problem=(1, 1, 6, 7, 12))
+        app.start()
+        answer = ['((1+12)-(1+6))*7', '6*(((12-7)+1)+1)', '((12*(1-1))+6)*7', '12/(1+((1-6)/7))', '12+((1-6)*(1-7))', '((1+12)-6)*(7-1)', '((1+12)-7)*(6+1)', '12-(((1+1)-7)*6)', '(6*((7+1)+1))-12']
+        for ans in answer:
+            time.sleep(1)
+            s_time = app.solve(ans)
+            self.assertLess(abs(s_time.seconds - 1), 2)
+        f_time = app.stop()
+        self.assertLess(abs(f_time.seconds - len(answer)), 2)
