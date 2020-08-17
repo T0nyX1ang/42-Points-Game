@@ -1,8 +1,7 @@
 """Main module of this project."""
 
 from .database import DATABASE_42
-from .expr_utils import expr_eval, judge_equivalent
-from .exceptions import FTPtsGameError
+from .expr_utils import build_node
 import random
 import datetime
 
@@ -29,13 +28,13 @@ class FTPtsGame(object):
         """Start the game session, serving as an initialization."""
         self.__valid = []  # this list stores readable answers
         self.__formula = []  # this list stores converted formulas
-        self.__players = {}  # this dict stores player statistics
+        self.__players = []  # this list stores player statistics
         self.__playing = False  # this stores playing status
 
     def __status_check(self, required_status: bool = True):
         """A status checker."""
         if required_status != self.is_playing():
-            raise FTPtsGameError(0x00, required_status)
+            raise PermissionError('Required status: %s' % required_status)
 
     def is_playing(self) -> bool:
         """Incicate the game is started or not."""
@@ -61,22 +60,22 @@ class FTPtsGame(object):
 
     def __generate_problem_by_user(self, **kwargs) -> tuple:
         """Generate a problem by user."""
-        try:
-            problem = tuple(sorted(list(kwargs['problem'])))
-        except Exception as e:
-            raise FTPtsGameError(0x01, e)
+        if 'problem' not in kwargs:
+            return self.__generate_problem_from_database()
+
+        problem = tuple(sorted(list(kwargs['problem'])))
         if problem not in DATABASE_42:
-            raise FTPtsGameError(0x02, problem)
+            raise ValueError('Problem has no solutions.')
         return problem
 
     def __generate_problem_by_probability(self, **kwargs) -> tuple:
         """Generate a problem by frequency / probability."""
-        try:
-            prob_list = list(kwargs['prob'])
-        except Exception as e:
-            raise FTPtsGameError(0x01, e)
+        if 'prob' not in kwargs:
+            return self.__generate_problem_from_database()
+
+        prob_list = list(kwargs['prob'])
         if len(prob_list) != len(DATABASE_42.keys()):
-            raise FTPtsGameError(0x03, len(prob_list))
+            raise ValueError('Prob_list must match the size of the database.')
 
         r = random.random() * sum(prob_list)
         cumulative_prob = 0.0
@@ -95,7 +94,7 @@ class FTPtsGame(object):
         elif method == 'probability':
             self.__problem = self.__generate_problem_by_probability(**kwargs)
         else:
-            raise FTPtsGameError(0x04, method)
+            raise TypeError('Invalid problem type.')
 
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
@@ -122,46 +121,43 @@ class FTPtsGame(object):
         self.__status_check(required_status=True)
         return self.__players
 
-    def __validate_repeated(self, math_expr: str):
+    def __validate_repeated(self, node: str):
         """Validate distinguishing expressions. Private method."""
         for ind in range(0, len(self.__formula)):
-            curr_expr = self.__formula[ind]
-            if judge_equivalent(self.__problem, math_expr, curr_expr):
-                raise FTPtsGameError(0x21, self.__valid[ind])
-
-    def __update_player_statistics(self, player_id: int):
-        """Update player statistics."""
-        if player_id not in self.__players:
-            self.__players[player_id] = [self.get_current_solution_number()]
-        else:
-            self.__players[player_id].append(
-                self.get_current_solution_number())
+            cmp_node = self.__formula[ind]
+            if cmp_node == node or cmp_node.simplify() == node.simplify():
+                raise LookupError(self.__valid[ind])
 
     def solve(self, math_expr: str, player_id: int = -1) -> datetime.timedelta:
         """Put forward a solution and show solution intervals if correct."""
         self.__status_check(required_status=True)
-        math_expr = math_expr.replace(' ', '').replace('（',
-                                                       '(').replace('）', ')')
+
+        replace_table = [
+            ('×', '*'), ('x', '*'), ('÷', '/'), (' ', ''),
+            ('\n', ''), ('\r', ''), ('（', '('), ('）', ')'),
+        ]
+        for src, dest in replace_table:
+            math_expr = math_expr.replace(src, dest)
 
         if len(math_expr) >= 30:
-            raise FTPtsGameError(0x10, len(math_expr))
+            raise OverflowError('Maximum parsing length exceeded.')
 
-        math_expr_value, simplified_expr, user_input_numbers = expr_eval(
-            math_expr)
-
+        node = build_node(math_expr)
+        math_expr_value = node.evaluate()
+        user_input_numbers = node.extract()
         if math_expr_value != 42:
-            raise FTPtsGameError(0x20, math_expr_value)
-
+            raise ArithmeticError(str(math_expr_value))
         if tuple(sorted(user_input_numbers)) != self.__problem:
-            raise FTPtsGameError(0x15, tuple(sorted(user_input_numbers)))
+            print(user_input_numbers)
+            raise ValueError('Unmatched input numbers.')
 
-        self.__validate_repeated(simplified_expr)
-        self.__formula.append(simplified_expr)
+        self.__validate_repeated(node)
+        self.__formula.append(node)
         self.__valid.append(math_expr)
-        self.__update_player_statistics(player_id)
         elapsed = self.get_elapsed_time()
         interval = elapsed - self.__last
         self.__last = elapsed
+        self.__players.append((player_id, interval))
         return interval
 
     def start(self):
@@ -169,7 +165,7 @@ class FTPtsGame(object):
         self.__status_check(required_status=False)
         self.__valid = []
         self.__formula = []
-        self.__players = {}
+        self.__players = []
         self.__timer = datetime.datetime.now()
         self.__last = datetime.timedelta(seconds=0)  # A tag for each solution.
         self.__playing = True
