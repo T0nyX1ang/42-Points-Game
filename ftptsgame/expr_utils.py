@@ -1,102 +1,118 @@
-"""Deal with expressions."""
+"""Expression utilities for 42 points."""
 
-from fractions import Fraction
-from .exceptions import FTPtsGameError
 import ast
+import math
 import random
+from fractions import Fraction
 
 
-def _expr_eval(node, simplified, orig_num):
-    """Core part of evaluating a expression."""
-    if isinstance(node, ast.BinOp):
-        lval, left, orig_num = _expr_eval(node.left, simplified, orig_num)
-        op = node.op
-        rval, right, orig_num = _expr_eval(node.right, simplified, orig_num)
+class Node(object):
+    """Simple implementation of an expression tree."""
 
-        # add parenthesis
-        if isinstance(op, (ast.Mult, ast.Div)) and isinstance(
-                node.left, ast.BinOp) and isinstance(node.left.op,
-                                                     (ast.Add, ast.Sub)):
-            left = '(%s)' % (left)
+    def __init__(self, ch=None, left=None, right=None):
+        """Initialize the node."""
+        self.ch = ch
+        self.left = left
+        self.right = right
 
-        if isinstance(op, (ast.Mult, ast.Div)) and isinstance(
-                node.right, ast.BinOp) and isinstance(node.right.op,
-                                                      (ast.Add, ast.Sub)):
-            right = '(%s)' % (right)
+    def __eq__(self, node):
+        """Judge equivalence two expressions."""
+        for _ in range(0, 10):
+            v_test = self.__generate_values(random_value=True)
+            if self.evaluate(v_test) == node.evaluate(v_test):
+                return True
+        return False
 
-        if isinstance(op, ast.Sub) and isinstance(
-                node.right, ast.BinOp) and isinstance(node.right.op,
-                                                      (ast.Add, ast.Sub)):
-            right = '(%s)' % (right)
+    def __ne__(self, node):
+        """Judge in-equivalence two expressions."""
+        return not self.__eq__(node)
 
-        if isinstance(op, ast.Div) and isinstance(
-                node.right, ast.BinOp) and isinstance(node.right.op,
-                                                      (ast.Mult, ast.Div)):
-            right = '(%s)' % (right)
+    def __pre_simplify_validation(self, value, parent_ch):
+        """Validation before simplication of the formula."""
+        add_sub_check = (value == 0 and parent_ch in '+-')
+        mult_div_check = (abs(value) == 1 and parent_ch in '*/')
+        return add_sub_check or mult_div_check
 
-        # calculation and concatenation
-        if isinstance(op, (ast.Add, ast.Sub)):
-            if lval == 0:
-                left = '0'
-            if rval == 0:
-                right = '0'
-
-        if isinstance(op, (ast.Mult, ast.Div)):
-            if lval == 1:
-                left = '1'
-            if rval == 1:
-                right = '1'
-
-        result, new_simplified = None, None
-        if isinstance(op, ast.Add):
-            result, new_simplified = lval + rval, left + '+' + right
-        elif isinstance(op, ast.Sub):
-            result, new_simplified = lval - rval, left + '-' + right
-        elif isinstance(op, ast.Mult):
-            result, new_simplified = lval * rval, left + '*' + right
-        elif isinstance(op, ast.Div) and rval != 0:
-            result, new_simplified = lval / rval, left + '/' + right
-        elif isinstance(op, ast.Div) and rval == 0:
-            raise FTPtsGameError(0x13)
+    def __generate_values(self, random_value=False):
+        """Generate normal or random values."""
+        if random_value:
+            random_number = random.sample(range(500000, 1000000), 14)
+            result = {chr(i + 97): random_number[i] for i in range(0, 14)}
         else:
-            raise FTPtsGameError(0x12, type(op))
-        return result, new_simplified, orig_num
+            result = {chr(i + 97): i for i in range(0, 14)}
+        result['0'], result['1'], result['-1'] = 0, 1, -1  # forcibly replace
+        return result
 
-    elif isinstance(node, ast.Num):
-        number = node.n
-        if type(number) is not int:
-            raise FTPtsGameError(0x14, number)
-        orig_num.append(number)
-        if number not in [0, 1]:
-            return Fraction(number), chr(number + 97), orig_num
+    def evaluate(self, values: dict = {}) -> Fraction:
+        """Evaluate the value of the node using a substitute dictionary."""
+        if not values:
+            values = self.__generate_values()
+
+        operation = {
+            '+': lambda x, y: x + y,
+            '-': lambda x, y: x - y,
+            '*': lambda x, y: x * y,
+            '/': lambda x, y: x / y if y != 0 else math.inf
+        }
+
+        if self.ch in '+-*/':
+            return operation[self.ch](self.left.evaluate(values),
+                                      self.right.evaluate(values))
         else:
-            return Fraction(number), str(number), orig_num
+            return Fraction(values[self.ch])
+
+    def extract(self) -> list:
+        """Extract numbers from the node."""
+        numbers = []
+        v_normal = self.__generate_values()
+        if self.ch not in '+-*/':
+            numbers.append(v_normal[self.ch])
+        else:
+            numbers = self.left.extract() + self.right.extract()
+        return numbers
+
+    def simplify(self):
+        """Simplify the node."""
+        if self.ch in '+-*/':
+            l_value = self.left.evaluate()
+            r_value = self.right.evaluate()
+            new_node_left = Node(
+                ch=str(l_value)) if self.__pre_simplify_validation(
+                    l_value, self.ch) else self.left.simplify()
+            new_node_right = Node(
+                ch=str(r_value)) if self.__pre_simplify_validation(
+                    r_value, self.ch) else self.right.simplify()
+            new_node = Node(ch=self.ch,
+                            left=new_node_left,
+                            right=new_node_right)
+        else:
+            new_node = Node(ch=self.ch) if self.ch not in 'ab' else Node(
+                ch=str(ord(self.ch) - 97))
+
+        return new_node
+
+
+def _build_node(node):
+    """Convert an AST node to an expression node."""
+    node_ref = {
+        type(ast.Add()): '+',
+        type(ast.Sub()): '-',
+        type(ast.Mult()): '*',
+        type(ast.Div()): '/'
+    }
+    if isinstance(node, ast.BinOp) and type(node.op) in node_ref:
+        built_node = Node(ch=node_ref[type(node.op)],
+                          left=_build_node(node.left),
+                          right=_build_node(node.right))
+    elif isinstance(node, ast.Num) and type(node.n) is int and node.n in list(
+            range(0, 14)):
+        built_node = Node(ch=chr(97 + node.n))
     else:
-        raise FTPtsGameError(0x12, type(node))
+        raise SyntaxError('Unallowed operator or operands.')
+    return built_node
 
 
-def expr_eval(math_expr):
-    """Entry point of evalutaing an expression."""
-    try:
-        expr_ast = ast.parse(math_expr, mode='eval').body
-    except Exception as e:
-        raise FTPtsGameError(0x11, e)
-    return _expr_eval(expr_ast, '', [])
-
-
-def judge_equivalent(problem, expr_1, expr_2):
-    """Judge equivalent of two expressions."""
-    count = 10
-    random_number = random.sample(range(50000, 100000), len(problem) * count)
-    for current in range(0, count):
-        temp_expr_1, temp_expr_2 = expr_1, expr_2
-        for i in range(0, len(problem)):
-            temp_expr_1 = temp_expr_1.replace(
-                chr(problem[i] + 97),
-                str(random_number[i + current * len(problem)]))
-            temp_expr_2 = temp_expr_2.replace(
-                chr(problem[i] + 97),
-                str(random_number[i + current * len(problem)]))
-        if expr_eval(temp_expr_1)[0] == expr_eval(temp_expr_2)[0]:
-            return True
-    return False
+def build_node(token: str) -> Node:
+    """Convert a token/string to an AST node."""
+    token_ast = ast.parse(token, mode='eval').body
+    return _build_node(token_ast)
