@@ -133,3 +133,7 @@ class TestGameApp(unittest.TestCase):
             self.assertLess(abs(s_time.seconds - 1), 2)
         f_time = app.stop()
         self.assertLess(abs(f_time.seconds - len(answer)), 2)
+
+    def test_standalone_expr_utils(self):
+        # additional tests for other issued problems
+        pass
