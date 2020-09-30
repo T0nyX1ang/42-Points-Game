@@ -1,6 +1,6 @@
 """42-points problem utilities for 42 points."""
 
-from expr_utils import Node
+from .expr_utils import Node
 import itertools
 import random
 from copy import deepcopy
