@@ -25,12 +25,13 @@ class FTPtsGame(object):
     solve(): put forward a solution and show solution intervals. (+)
     """
 
-    def __init__(self):
+    def __init__(self, rule_set='Tony'):
         """Start the game session, serving as an initialization."""
         self.__valid = []  # this list stores readable answers
         self.__formula = []  # this list stores converted formulas
         self.__players = []  # this list stores player statistics
         self.__playing = False  # this stores playing status
+        self.__rule_set = rule_set
 
     def __status_check(self, required_status: bool = True):
         """A status checker."""
@@ -97,7 +98,7 @@ class FTPtsGame(object):
         else:
             raise TypeError('Invalid problem type.')
         self.__problem_class = Problem(list(self.__problem))
-        self.__problem_class.generate_answers()
+        self.__problem_class.generate_answers(self.__rule_set)
 
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
@@ -119,6 +120,17 @@ class FTPtsGame(object):
         self.__status_check(required_status=True)
         return len(self.__problem_class.distinct_answer_table)
 
+    def get_remain_solutions(self) -> list:
+        current_solution_set = set()
+        for expr_str in self.__valid:
+            node = build_node(expr_str)
+            current_solution_set.add(self.__problem_class.equivalence_dict[node.unique_id()])
+        return_list = []
+        for expr in self.__problem_class.distinct_answer_table:
+            if self.__problem_class.equivalence_dict[expr.unique_id()] not in current_solution_set:
+                return_list.append(expr.to_string())
+        return return_list
+
     def get_current_player_statistics(self) -> list:
         """Get current player statistics. Effective when playing."""
         self.__status_check(required_status=True)
@@ -126,10 +138,10 @@ class FTPtsGame(object):
 
     def __validate_repeated(self, node: Node):
         """Validate distinguishing expressions. Private method."""
+        class_id = self.__problem_class.equivalence_dict[node.unique_id()]
         for ind in range(0, len(self.__formula)):
             cmp_node = self.__formula[ind]
             cmp_class_id = self.__problem_class.equivalence_dict[cmp_node.unique_id()]
-            class_id = self.__problem_class.equivalence_dict[node.unique_id()]
             if cmp_class_id == class_id:
                 raise LookupError(self.__valid[ind])
 
