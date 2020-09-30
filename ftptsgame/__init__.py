@@ -1,7 +1,8 @@
 """Main module of this project."""
 
 from .database import DATABASE_42
-from .expr_utils import build_node
+from .expr_utils import Node, build_node
+from .problem_utils import Problem
 import random
 import datetime
 
@@ -37,7 +38,7 @@ class FTPtsGame(object):
             raise PermissionError('Required status: %s' % required_status)
 
     def is_playing(self) -> bool:
-        """Incicate the game is started or not."""
+        """Indicate the game is started or not."""
         return self.__playing
 
     def get_elapsed_time(self) -> datetime.timedelta:
@@ -84,7 +85,7 @@ class FTPtsGame(object):
             if r < cumulative_prob:
                 return problem
 
-    def generate_problem(self, method: str, **kwargs) -> tuple:
+    def generate_problem(self, method: str, **kwargs):
         """Generate a random problem from the database."""
         self.__status_check(required_status=False)
         if method == 'database':
@@ -95,6 +96,8 @@ class FTPtsGame(object):
             self.__problem = self.__generate_problem_by_probability(**kwargs)
         else:
             raise TypeError('Invalid problem type.')
+        self.__problem_class = Problem(list(self.__problem))
+        self.__problem_class.generate_answers()
 
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
@@ -114,18 +117,20 @@ class FTPtsGame(object):
     def get_total_solution_number(self) -> int:
         """Get the number of total solutions. Effective when playing."""
         self.__status_check(required_status=True)
-        return DATABASE_42[self.__problem]
+        return len(self.__problem_class.distinct_answer_table)
 
-    def get_current_player_statistics(self) -> dict:
+    def get_current_player_statistics(self) -> list:
         """Get current player statistics. Effective when playing."""
         self.__status_check(required_status=True)
         return self.__players
 
-    def __validate_repeated(self, node: str):
+    def __validate_repeated(self, node: Node):
         """Validate distinguishing expressions. Private method."""
         for ind in range(0, len(self.__formula)):
             cmp_node = self.__formula[ind]
-            if cmp_node == node or cmp_node.simplify() == node.simplify():
+            cmp_class_id = self.__problem_class.equivalence_dict[cmp_node.unique_id()]
+            class_id = self.__problem_class.equivalence_dict[node.unique_id()]
+            if cmp_class_id == class_id:
                 raise LookupError(self.__valid[ind])
 
     def solve(self, math_expr: str, player_id: int = -1) -> datetime.timedelta:
