@@ -36,6 +36,12 @@ class Node(object):
         }
         return operation_list[opt](x, y)
 
+    def node_list(self):
+        if self.type == Node.NODE_TYPE_OPERATOR:
+            return self.left.node_list() + [self] + self.right.node_list()
+        else:
+            return [self]
+
     def unique_id(self):
         """Return the unique id of this expression.
            Two expressions have the same tree structure iff they have the same id."""
@@ -173,6 +179,30 @@ class Node(object):
             # Rule 6: x_1/x_2 --> x_2/x_1
             if self.ch == '/' and left_value == right_value:
                 return_list.append(Node(Node.NODE_TYPE_OPERATOR, '/', deepcopy(self.right), deepcopy(self.left)))
+            # Rule 7 & 8
+            if rule_set == 'Misaka':
+                # Rule 7: Changing two sub-expressions which have the same result
+                #         doesn't change the equivalence class of this expression.
+                left_node_list = self.left.node_list()
+                right_node_list = self.right.node_list()
+                for nl in left_node_list:
+                    for nr in right_node_list:
+                        if nl.value == nr.value:
+                            nl.type, nl.left, nl.right, nl.ch, nl.value, \
+                            nr.type, nr.left, nr.right, nr.ch, nr.value = \
+                            nr.type, nr.left, nr.right, nr.ch, nr.value, \
+                            nl.type, nl.left, nl.right, nl.ch, nl.value
+                            return_list.append(deepcopy(self))
+                            nl.type, nl.left, nl.right, nl.ch, nl.value, \
+                            nr.type, nr.left, nr.right, nr.ch, nr.value = \
+                            nr.type, nr.left, nr.right, nr.ch, nr.value, \
+                            nl.type, nl.left, nl.right, nl.ch, nl.value
+                # Rule 8: 2*2 --> 2+2
+                #         4/2 --> 4-2
+                if self.ch == '*' and left_value == 2 and right_value == 2:
+                    return_list.append(Node(Node.NODE_TYPE_OPERATOR, '+', deepcopy(self.left), deepcopy(self.right)))
+                if self.ch == '/' and left_value == 4 and right_value == 2:
+                    return_list.append(Node(Node.NODE_TYPE_OPERATOR, '-', deepcopy(self.left), deepcopy(self.right)))
             return return_list
         else:
             return []
