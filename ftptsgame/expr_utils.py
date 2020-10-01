@@ -119,8 +119,8 @@ class Node(object):
            If expression A induces expression B, B may not induce A."""
         if self.type == Node.NODE_TYPE_OPERATOR:
             return_list = []
-            left_equal_list = self.left.all_equivalent_expression()
-            right_equal_list = self.right.all_equivalent_expression()
+            left_equal_list = self.left.all_equivalent_expression(rule_set)
+            right_equal_list = self.right.all_equivalent_expression(rule_set)
             left_value, right_value = self.left.value, self.right.value
             for new_left in left_equal_list:
                 return_list.append(Node(Node.NODE_TYPE_OPERATOR, self.ch, new_left, deepcopy(self.right)))
