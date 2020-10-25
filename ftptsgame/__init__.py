@@ -120,7 +120,9 @@ class FTPtsGame(object):
         self.__status_check(required_status=True)
         return len(self.__problem_class.distinct_answer_table)
 
-    def get_remain_solutions(self) -> list:
+    def get_remaining_solutions(self) -> list:
+        """Get remaining solutions. Effective when playing."""
+        self.__status_check(required_status=True)
         current_solution_set = set()
         for expr_str in self.__valid:
             node = build_node(expr_str)
