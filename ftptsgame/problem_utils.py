@@ -10,21 +10,18 @@ class Problem(object):
 
     def __init__(self, problem):
         """Initialize the problem."""
-        self.problem = problem
+        self.problem = sorted(problem)
         self.answer_table = []
         self.distinct_answer_table = []
         self.solution_number = -1
         self.equivalence_dict = {}
-        self.problem.sort()
 
     @staticmethod
-    def __all_expression_recursive(prob) -> list:
+    def __all_expression_recursive(problem) -> list:
         """Return the list of all possible expressions of a problem."""
-        n = len(prob)
-        if n == 0:
-            return []
+        n = len(problem)
         if n == 1:
-            return [Node(Node.NODE_TYPE_NUMBER, prob[0])]
+            return [Node(Node.NODE_TYPE_NUMBER, problem[0])]
         return_list = []
         unique_id_set = set()
         for mask in range(1, 2 ** n - 1):
@@ -33,9 +30,9 @@ class Problem(object):
             t = mask
             for i in range(n):
                 if t % 2 == 1:
-                    right_prob.append(prob[i])
+                    right_prob.append(problem[i])
                 else:
-                    left_prob.append(prob[i])
+                    left_prob.append(problem[i])
                 t //= 2
             left_set = Problem.__all_expression_recursive(left_prob)
             right_set = Problem.__all_expression_recursive(right_prob)
@@ -43,7 +40,8 @@ class Problem(object):
                 for right_expr in right_set:
                     for opt in '+-*/':
                         try:
-                            expr = Node(Node.NODE_TYPE_OPERATOR, opt, left_expr, right_expr)
+                            expr = Node(Node.NODE_TYPE_OPERATOR, opt,
+                                        left_expr, right_expr)
                             if expr.value < 0:
                                 continue
                             expr_id = expr.unique_id()
@@ -59,21 +57,27 @@ class Problem(object):
         return Problem.__all_expression_recursive(self.problem)
 
     def __all_expression_equals_to_target(self, target=42) -> list:
-        """Return the list of all possible answers of this problem (must be equal to the target)."""
-        return [deepcopy(expr) for expr in self.__all_expression() if expr.evaluate() == target]
+        """Get all possible answers of this problem."""
+        return [
+            deepcopy(expr) for expr in self.__all_expression()
+            if expr.evaluate() == target
+        ]
 
-    def __all_answer_divided_into_equivalence_classes(self, target=42, max_number=13):
-        """Divide all answer into some equivalence classes.
-           Return two objects:
-           1. A list including all answers (as expression trees);
-           2. A dictionary, for any answer expression save the representative expression of its class
-              (as the unique id of expressions)."""
+    def __classify(self, target=42, max_number=13):
+        """
+        Divide all answers into some equivalence classes.
+
+        Returns:
+        1. A list including all answers (as expression trees);
+        2. A dictionary, for any answer expression save the representative
+           expression of its class (as the unique id of expressions).
+        """
         values_list = []
         for _ in range(10):
-            random_number = random.sample(range(500000, 1000000), max_number + 1)
+            random_number = random.sample(range(500000, 1000000),
+                                          max_number + 1)
             values = {i: random_number[i] for i in range(2, max_number + 1)}
-            values[0] = 0
-            values[1] = 1
+            values[0], values[1] = 0, 1
             values_list.append(values)
         answers = self.__all_expression_equals_to_target(target)
         parent, rank = {}, {}
@@ -122,7 +126,7 @@ class Problem(object):
 
     def generate_answers(self):
         """Generate all answers divided into equivalence classes."""
-        self.answer_table, self.equivalence_dict = self.__all_answer_divided_into_equivalence_classes()
+        self.answer_table, self.equivalence_dict = self.__classify()
         self.distinct_answer_table = []
         self.solution_number = 0
         for expr in self.answer_table:
