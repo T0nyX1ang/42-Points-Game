@@ -37,11 +37,12 @@ After you have installed the package, you are almost done. If you want to try it
 ```py
     from ftptsgame import FTPtsGame
     app = FTPtsGame() # initialize
-    app.generate_problem('database') # generate a problem beforehand
+    app.generate_problem(problem=[1, 2, 3, 4, 5]) # generate a problem beforehand
     app.start() # start the game
     app.get_current_problem() # show the problem
-    app.solve('your solutions') # put forward a solution
+    app.solve('2 * 4 * 5 + 3 - 1') # put forward a valid solution
     app.get_current_solutions() # show all solutions
+    app.get_remaining_solutions() # show remaining solutions
     app.stop() # stop the game
 ```
 
