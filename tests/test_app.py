@@ -102,4 +102,13 @@ class TestGameApp(unittest.TestCase):
 
     def test_standalone_expr_utils(self):
         # additional tests for other issued problems
-        pass
+        a = build_node('(1-2)*(3-4-5)')
+        self.assertEqual(str(a), '(2-1)*(5-(4-3))')
+        a = build_node('(1-2)*(3-4+5)')
+        self.assertEqual(str(a), '(2-1)*(4-3+5)')
+        a = build_node('(1-2)*(4+5-3)')
+        self.assertEqual(str(a), '(2-1)*(4+5-3)')
+        a = build_node('(2-1)*(3-4-5)')
+        self.assertEqual(str(a), '(2-1)*(5-(4-3))')
+        a = build_node('(3-4-5)*(2-1)')
+        self.assertEqual(str(a), '(5-(4-3))*(2-1)')        
