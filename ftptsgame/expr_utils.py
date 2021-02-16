@@ -20,7 +20,7 @@ class Node(object):
             self.value = Node.operation(ch, self.left.value, self.right.value)
             self.ch = ch
         else:
-            self.value = Fraction(ch)
+            self.value = int(ch)
             self.ch = '#'
 
     @staticmethod
@@ -32,7 +32,7 @@ class Node(object):
             '+': lambda x, y: x + y,
             '-': lambda x, y: x - y,
             '*': lambda x, y: x * y,
-            '/': lambda x, y: x / y
+            '/': lambda x, y: Fraction(x, y)
         }
         return operation_list[opt](x, y)
 
