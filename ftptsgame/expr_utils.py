@@ -1,6 +1,7 @@
 """Expression utilities for 42 points."""
 
 import ast
+import itertools
 from copy import deepcopy
 from fractions import Fraction
 
@@ -212,20 +213,19 @@ class Node(object):
         #         doesn't change the equivalence class of this expression.
         left_node_list = self.left.node_list()
         right_node_list = self.right.node_list()
-        for nl in left_node_list:
-            for nr in right_node_list:
-                if nl.value == nr.value:
-                    nl.type, nl.left, nl.right, nl.ch, nl.value, \
-                        nr.type, nr.left, nr.right, nr.ch, nr.value = \
-                        nr.type, nr.left, nr.right, nr.ch, nr.value, \
-                        nl.type, nl.left, nl.right, nl.ch, nl.value
+        for nl, nr in itertools.product(left_node_list, right_node_list):
+            if nl.value == nr.value:
+                nl.type, nl.left, nl.right, nl.ch, nl.value, \
+                    nr.type, nr.left, nr.right, nr.ch, nr.value = \
+                    nr.type, nr.left, nr.right, nr.ch, nr.value, \
+                    nl.type, nl.left, nl.right, nl.ch, nl.value
 
-                    return_list.append(deepcopy(self))
+                return_list.append(deepcopy(self))
 
-                    nl.type, nl.left, nl.right, nl.ch, nl.value, \
-                        nr.type, nr.left, nr.right, nr.ch, nr.value = \
-                        nr.type, nr.left, nr.right, nr.ch, nr.value, \
-                        nl.type, nl.left, nl.right, nl.ch, nl.value
+                nl.type, nl.left, nl.right, nl.ch, nl.value, \
+                    nr.type, nr.left, nr.right, nr.ch, nr.value = \
+                    nr.type, nr.left, nr.right, nr.ch, nr.value, \
+                    nl.type, nl.left, nl.right, nl.ch, nl.value
 
         # Rule 8: 2*2 --> 2+2
         #         4/2 --> 4-2
