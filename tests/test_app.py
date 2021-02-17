@@ -78,7 +78,7 @@ class TestGameApp(unittest.TestCase):
         self.assertRaises(LookupError, app.solve, '6*7*(12 / (3*4))')
         self.assertRaises(LookupError, app.solve, '(12-3*4)+6*7')
         self.assertEqual(app.get_current_solution_number(), 1)
-        self.assertIn('(7*4-12)*3-6', app.get_remaining_solutions())
+        self.assertEqual(len(app.get_remaining_solutions()), 25)
 
         s2 = app.solve('       （12      +      6  /     3)  *  （7    -   4)')
         self.assertRaises(LookupError, app.solve, '(4-7)*(12+6/3)')

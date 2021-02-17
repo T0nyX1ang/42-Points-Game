@@ -114,8 +114,9 @@ def _get_all_expr(problem, target=42) -> list:
 
         left_set = _get_all_expr(left_prob)
         right_set = _get_all_expr(right_prob)
-        for v in itertools.product(left_set, right_set, '+-*/'):
-            left_expr, right_expr, opt = v
+        for left_expr, right_expr, opt in itertools.product(
+            left_set, right_set, '+-*/'
+        ):
             try:
                 expr = Node(Node.NODE_TYPE_OPERATOR, opt,
                             left_expr, right_expr)
