@@ -28,7 +28,7 @@ class Node(object):
     def operation(opt, x, y):
         """Basic arithmetic operation between two numbers."""
         if opt == '/' and y == 0:
-            raise ArithmeticError('Division by 0.')
+            raise ArithmeticError('x/0')
         operation_list = {
             '+': lambda x, y: x + y,
             '-': lambda x, y: x - y,

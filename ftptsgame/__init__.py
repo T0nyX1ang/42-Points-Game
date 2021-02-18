@@ -124,7 +124,6 @@ class FTPtsGame(object):
         if math_expr_value != 42:
             raise ArithmeticError(str(math_expr_value))
         if tuple(sorted(user_input_numbers)) != self.__problem:
-            print(user_input_numbers)
             raise ValueError('Unmatched input numbers.')
 
         self.__validate_repeated(node)
