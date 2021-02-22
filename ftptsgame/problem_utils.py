@@ -53,7 +53,7 @@ class Problem(object):
             values = {i: random_number[i] for i in range(2, max_number + 1)}
             values[0], values[1] = 0, 1
             values_list.append(values)
-        answers = _get_all_expr(self.problem, target)
+        answers = _get_all_expr(self.problem, len(self.problem), target)
 
         uid_table, uid_r1_table = {}, {}
         for expr in answers:
@@ -93,7 +93,7 @@ class Problem(object):
                 self.solution_number += 1
 
 
-def _get_all_expr(problem, target=42) -> list:
+def _get_all_expr(problem: list, length: int, target: int = 42) -> list:
     """Return the list of all possible expressions of a problem."""
     n = len(problem)
     if n == 1:
@@ -101,26 +101,24 @@ def _get_all_expr(problem, target=42) -> list:
     return_list = []
     unique_id_set = set()
 
-    for mask in range(1, 2 ** n - 1):
-        t = mask
-        left_prob = []
-        right_prob = []
-        for i in range(n):
-            if t % 2 == 1:
-                right_prob.append(problem[i])
-            else:
-                left_prob.append(problem[i])
-            t //= 2
+    for mask in itertools.product([0, 1], repeat=n):
+        if sum(mask) in [0, n]:
+            continue
 
-        left_set = _get_all_expr(left_prob)
-        right_set = _get_all_expr(right_prob)
+        left_prob, right_prob = [], []
+        for i in range(n):
+            left_prob.append(problem[i]) if mask[i] == 0 \
+                else right_prob.append(problem[i])
+
+        left_set = _get_all_expr(left_prob, length, target)
+        right_set = _get_all_expr(right_prob, length, target)
         for left_expr, right_expr, opt in itertools.product(
             left_set, right_set, '+-*/'
         ):
             try:
                 expr = Node(Node.NODE_TYPE_OPERATOR, opt,
                             left_expr, right_expr)
-                if expr.value < 0 or (expr.value != target and n == 5):
+                if expr.value < 0 or (expr.value != target and n == length):
                     continue
                 expr_id = expr.unique_id()
                 if expr_id not in unique_id_set:
