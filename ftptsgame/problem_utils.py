@@ -92,6 +92,19 @@ class Problem(object):
                 self.solution_number += 1
 
 
+def _combine_expr(left_expr: Node, right_expr: Node):
+    """Combine two expressions to a single node with different operators."""
+    yield Node(Node.NODE_TYPE_OPERATOR, '+', left_expr, right_expr)
+
+    yield Node(Node.NODE_TYPE_OPERATOR, '*', left_expr, right_expr)
+
+    if left_expr.value >= right_expr.value:
+        yield Node(Node.NODE_TYPE_OPERATOR, '-', left_expr, right_expr)
+
+    if right_expr.value != 0:
+        yield Node(Node.NODE_TYPE_OPERATOR, '/', left_expr, right_expr)
+
+
 def _get_all_expr(problem: list, length: int, target: int = 42) -> list:
     """Return the list of all possible expressions of a problem."""
     n = len(problem)
@@ -103,7 +116,6 @@ def _get_all_expr(problem: list, length: int, target: int = 42) -> list:
     for mask in itertools.product([0, 1], repeat=n):
         if sum(mask) in [0, n]:
             continue
-
         left_prob, right_prob = [], []
         for i in range(n):
             left_prob.append(problem[i]) if mask[i] == 0 \
@@ -111,19 +123,13 @@ def _get_all_expr(problem: list, length: int, target: int = 42) -> list:
 
         left_set = _get_all_expr(left_prob, length, target)
         right_set = _get_all_expr(right_prob, length, target)
-        for left_expr, right_expr, opt in itertools.product(
-            left_set, right_set, '+-*/'
-        ):
-            try:
-                expr = Node(Node.NODE_TYPE_OPERATOR, opt,
-                            left_expr, right_expr)
-                if expr.value < 0 or (expr.value != target and n == length):
+        for left_expr, right_expr in itertools.product(left_set, right_set):
+            for expr in _combine_expr(left_expr, right_expr):
+                if expr.value != target and n == length:
                     continue
                 expr_id = expr.unique_id()
                 if expr_id not in unique_id_set:
                     return_list.append(expr)
                     unique_id_set.add(expr_id)
-            except ArithmeticError:
-                pass
 
     return return_list
