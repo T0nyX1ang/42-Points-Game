@@ -47,13 +47,12 @@ class Problem(object):
            expression of its class (as the unique id of expressions).
         """
         values_list = []
+        n = len(self.problem)
         for _ in range(10):
-            random_number = random.sample(range(500000, 1000000),
-                                          max_number + 1)
-            values = {i: random_number[i] for i in range(2, max_number + 1)}
-            values[0], values[1] = 0, 1
+            numbers = random.sample(range(500000, 1000000), n)
+            values = {self.problem[i]: numbers[i] for i in range(n)}
             values_list.append(values)
-        answers = _get_all_expr(self.problem, len(self.problem), target)
+        answers = _get_all_expr(self.problem, n, target)
 
         uid_table, uid_r1_table = {}, {}
         for expr in answers:
