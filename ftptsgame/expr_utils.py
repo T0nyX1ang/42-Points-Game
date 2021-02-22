@@ -137,28 +137,23 @@ class Node(object):
         left_value, right_value = self.left.value, self.right.value
         for new_left in left_equal_list:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, new_left,
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, self.ch, new_left, self.right))
         for new_right in right_equal_list:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, deepcopy(self.left),
-                     new_right))
+                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left, new_right))
 
         # Rule 2: x-0 --> x+0
         #         x/1 --> x*1
         #         0/x --> 0*x
         if self.ch == '-' and right_value == 0:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '+', deepcopy(self.left),
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right))
         if self.ch == '/' and right_value == 1:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '*', deepcopy(self.left),
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right))
         if self.ch == '/' and left_value == 0:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '*', deepcopy(self.left),
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right))
 
         # Rule 3: (x?y)+0 --> (x+0)?y, x?(y+0)
         #         (x?y)*1 --> (x*1)?y, x?(y*1)
@@ -169,14 +164,12 @@ class Node(object):
                 Node(
                     Node.NODE_TYPE_OPERATOR, self.left.ch,
                     Node(Node.NODE_TYPE_OPERATOR, self.ch,
-                         deepcopy(self.left.left), deepcopy(self.right)),
-                    deepcopy(self.left.right)))
+                         self.left.left, self.right), self.left.right))
             return_list.append(
                 Node(
-                    Node.NODE_TYPE_OPERATOR, self.left.ch,
-                    deepcopy(self.left.left),
+                    Node.NODE_TYPE_OPERATOR, self.left.ch, self.left.left,
                     Node(Node.NODE_TYPE_OPERATOR, self.ch,
-                         deepcopy(self.left.right), deepcopy(self.right))))
+                         self.left.right, self.right)))
 
         # Rule 4: (y+z)/x --> (x-y)/z, (x-z)/y when x=y+z
         if self.ch == '/' and self.left.ch == '+' and \
@@ -186,29 +179,26 @@ class Node(object):
                 Node(
                     Node.NODE_TYPE_OPERATOR, '/',
                     Node(Node.NODE_TYPE_OPERATOR, '-',
-                         deepcopy(self.right), deepcopy(self.left.left)),
-                    deepcopy(self.left.right)))
+                         self.right, self.left.left),
+                    self.left.right))
             return_list.append(
                 Node(
                     Node.NODE_TYPE_OPERATOR, '/',
                     Node(Node.NODE_TYPE_OPERATOR, '-',
-                         deepcopy(self.right), deepcopy(self.left.right)),
-                    deepcopy(self.left.left)))
+                         self.right, self.left.right),
+                    self.left.left))
 
         # Rule 5: x*(y/y) --> x+(y-y)
         if self.ch == '*' and self.right.ch == '/' and right_value == 1:
             return_list.append(
-                Node(
-                    Node.NODE_TYPE_OPERATOR, '+', deepcopy(self.left),
-                    Node(Node.NODE_TYPE_OPERATOR, '-',
-                         deepcopy(self.right.left),
-                         deepcopy(self.right.right))))
+                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, Node(
+                    Node.NODE_TYPE_OPERATOR, '-',
+                    self.right.left, self.right.right)))
 
         # Rule 6: x_1/x_2 --> x_2/x_1
         if self.ch == '/' and left_value == right_value:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '/', deepcopy(self.right),
-                     deepcopy(self.left)))
+                Node(Node.NODE_TYPE_OPERATOR, '/', self.right, self.left))
 
         # Rule 7: Changing two sub-expressions which have the same result
         #         doesn't change the equivalence class of this expression.
@@ -232,12 +222,10 @@ class Node(object):
         #         4/2 --> 4-2
         if self.ch == '*' and left_value == 2 and right_value == 2:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '+', deepcopy(self.left),
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right))
         if self.ch == '/' and left_value == 4 and right_value == 2:
             return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '-', deepcopy(self.left),
-                     deepcopy(self.right)))
+                Node(Node.NODE_TYPE_OPERATOR, '-', self.left, self.right))
 
         return return_list
 
