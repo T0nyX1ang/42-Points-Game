@@ -57,8 +57,9 @@ class Node(object):
             return str(self.value)
 
         deal_l = self.ch in '*/' and self.left.ch in '+-'
-        deal_r = (self.ch in '-*/' and self.right.ch in '+-') or (
-            self.ch == '/' and self.right.ch in '*/')
+        deal_r = (self.ch in '-*/'
+                  and self.right.ch in '+-') or (self.ch == '/'
+                                                 and self.right.ch in '*/')
         left_string = '(' * deal_l + repr(self.left) + ')' * deal_l
         right_string = '(' * deal_r + repr(self.right) + ')' * deal_r
         return left_string + self.ch + right_string
@@ -129,76 +130,63 @@ class Node(object):
         If expression A induces expression B, B may not induce A.
         """
         if self.type != Node.NODE_TYPE_OPERATOR:
-            return []
+            return
 
-        return_list = []
         left_equal_list = self.left.all_equivalent_expression()
         right_equal_list = self.right.all_equivalent_expression()
         left_value, right_value = self.left.value, self.right.value
         for new_left in left_equal_list:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, new_left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, self.ch, new_left, self.right)
         for new_right in right_equal_list:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left, new_right))
+            yield Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left, new_right)
 
         # Rule 2: x-0 --> x+0
         #         x/1 --> x*1
         #         0/x --> 0*x
         if self.ch == '-' and right_value == 0:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right)
         if self.ch == '/' and right_value == 1:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right)
         if self.ch == '/' and left_value == 0:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '*', self.left, self.right)
 
         # Rule 3: (x?y)+0 --> (x+0)?y, x?(y+0)
         #         (x?y)*1 --> (x*1)?y, x?(y*1)
         if ((self.ch == '+' and right_value == 0) or
             (self.ch == '*' and right_value == 1)) \
                 and self.left.type == Node.NODE_TYPE_OPERATOR:
-            return_list.append(
-                Node(
-                    Node.NODE_TYPE_OPERATOR, self.left.ch,
-                    Node(Node.NODE_TYPE_OPERATOR, self.ch,
-                         self.left.left, self.right), self.left.right))
-            return_list.append(
-                Node(
-                    Node.NODE_TYPE_OPERATOR, self.left.ch, self.left.left,
-                    Node(Node.NODE_TYPE_OPERATOR, self.ch,
-                         self.left.right, self.right)))
+            yield Node(
+                Node.NODE_TYPE_OPERATOR, self.left.ch,
+                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.left,
+                     self.right), self.left.right)
+            yield Node(
+                Node.NODE_TYPE_OPERATOR, self.left.ch, self.left.left,
+                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.right,
+                     self.right))
 
         # Rule 4: (y+z)/x --> (x-y)/z, (x-z)/y when x=y+z
         if self.ch == '/' and self.left.ch == '+' and \
                 left_value == right_value and \
                 self.left.left.value != 0 and self.left.right.value != 0:
-            return_list.append(
-                Node(
-                    Node.NODE_TYPE_OPERATOR, '/',
-                    Node(Node.NODE_TYPE_OPERATOR, '-',
-                         self.right, self.left.left),
-                    self.left.right))
-            return_list.append(
-                Node(
-                    Node.NODE_TYPE_OPERATOR, '/',
-                    Node(Node.NODE_TYPE_OPERATOR, '-',
-                         self.right, self.left.right),
-                    self.left.left))
+            yield Node(
+                Node.NODE_TYPE_OPERATOR, '/',
+                Node(Node.NODE_TYPE_OPERATOR, '-', self.right, self.left.left),
+                self.left.right)
+            yield Node(
+                Node.NODE_TYPE_OPERATOR, '/',
+                Node(Node.NODE_TYPE_OPERATOR, '-', self.right,
+                     self.left.right), self.left.left)
 
         # Rule 5: x*(y/y) --> x+(y-y)
         if self.ch == '*' and self.right.ch == '/' and right_value == 1:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, Node(
-                    Node.NODE_TYPE_OPERATOR, '-',
-                    self.right.left, self.right.right)))
+            yield Node(
+                Node.NODE_TYPE_OPERATOR, '+', self.left,
+                Node(Node.NODE_TYPE_OPERATOR, '-', self.right.left,
+                     self.right.right))
 
         # Rule 6: x_1/x_2 --> x_2/x_1
         if self.ch == '/' and left_value == right_value:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '/', self.right, self.left))
+            yield Node(Node.NODE_TYPE_OPERATOR, '/', self.right, self.left)
 
         # Rule 7: Changing two sub-expressions which have the same result
         #         doesn't change the equivalence class of this expression.
@@ -211,7 +199,7 @@ class Node(object):
                     nr.type, nr.left, nr.right, nr.ch, nr.value, \
                     nl.type, nl.left, nl.right, nl.ch, nl.value
 
-                return_list.append(deepcopy(self))
+                yield deepcopy(self)
 
                 nl.type, nl.left, nl.right, nl.ch, nl.value, \
                     nr.type, nr.left, nr.right, nr.ch, nr.value = \
@@ -221,15 +209,11 @@ class Node(object):
         # Rule 8: 2*2 --> 2+2
         #         4/2 --> 4-2
         if self.ch == '*' and left_value == 2 and right_value == 2:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '+', self.left, self.right)
         if self.ch == '/' and left_value == 4 and right_value == 2:
-            return_list.append(
-                Node(Node.NODE_TYPE_OPERATOR, '-', self.left, self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '-', self.left, self.right)
 
-        return return_list
-
-    def unique_id_for_rule_1(self, values_list):
+    def unique_id_for_rule_1(self, values_list: list) -> tuple:
         """
         Return the unique id of this expression.
 
@@ -239,7 +223,7 @@ class Node(object):
         return tuple(results)
 
 
-def _build_node(node):
+def _build_node(node) -> Node:
     """Convert an AST node to an expression node."""
     node_ref = {
         type(ast.Add()): '+',
