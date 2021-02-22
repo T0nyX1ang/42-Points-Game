@@ -86,6 +86,7 @@ class TestGameApp(unittest.TestCase):
         self.assertEqual(app.get_current_player_statistics(), [(10000, s1), (-1, s2)])
         self.assertEqual(['6*7+(12-3*4)', '(12+6/3)*(7-4)'], app.get_current_solutions())
         app.stop()
+
     
     def test_throttle(self):
         # throttle tests for game time
@@ -103,12 +104,14 @@ class TestGameApp(unittest.TestCase):
     def test_standalone_expr_utils(self):
         # additional tests for other issued problems
         a = build_node('(1-2)*(3-4-5)')
-        self.assertEqual(str(a), '(2-1)*(5-(4-3))')
-        a = build_node('(1-2)*(3-4+5)')
         self.assertEqual(str(a), '(2-1)*(4-3+5)')
+        a = build_node('(1-2)*(3-4+5)')
+        self.assertEqual(str(a), '(2-1)*(5-(4-3))')
         a = build_node('(1-2)*(4+5-3)')
         self.assertEqual(str(a), '(2-1)*(4+5-3)')
         a = build_node('(2-1)*(3-4-5)')
-        self.assertEqual(str(a), '(2-1)*(5-(4-3))')
+        self.assertEqual(str(a), '(2-1)*(4-3+5)')
         a = build_node('(3-4-5)*(2-1)')
-        self.assertEqual(str(a), '(5-(4-3))*(2-1)')        
+        self.assertEqual(str(a), '(4-3+5)*(2-1)')
+        a = build_node('9/(11/6-2)+12')
+        self.assertEqual(str(a), '9/(2-11/6)-12')

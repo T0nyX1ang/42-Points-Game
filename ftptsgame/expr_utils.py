@@ -80,45 +80,46 @@ class Node(object):
         else:
             return [int(self.value)]
 
-    def _reduce_subproc(self, left_value: Fraction,
-                        right_value: Fraction,
-                        return_value: Fraction):
-        """Subprocedure for reduce_negative_number."""
-        def neg(x, b):
-            return x * (-1) ** b
-
-        left_opt = 1
-        right_opt = -1 if self.ch == '-' else 1
-
-        left_value = neg(left_value, left_value < 0)
-        left_opt = neg(left_opt, left_value < 0)
-        right_value = neg(right_value, right_value < 0)
-        right_opt = neg(right_opt, right_value < 0)
-        left_opt = neg(left_opt, return_value < 0)
-        right_opt = neg(right_opt, return_value < 0)
-
-        if left_opt == 1:
-            self.ch = '+' if right_opt == 1 else '-'
-        else:
-            self.ch = '-'
-            self.left, self.right = self.right, self.left
-
     def reduce_negative_number(self):
         """
         Make all intermediate results of this expression not be negative.
 
         The result of whole expression will become its absolute value.
         """
-        if self.type == Node.NODE_TYPE_OPERATOR:
-            left_value = self.left.reduce_negative_number()
-            right_value = self.right.reduce_negative_number()
-            return_value = Node.operation(self.ch, left_value, right_value)
-            if self.ch in '+-':
-                self._reduce_subproc(left_value, right_value, return_value)
+        def _neg(v1: Fraction, v2: Fraction) -> Fraction:
+            return v1 * (1 - 2 * (v2 < 0))
+
+        if self.type != Node.NODE_TYPE_OPERATOR:
+            return self.value
+
+        left_value = self.left.reduce_negative_number()
+        right_value = self.right.reduce_negative_number()
+        return_value = Node.operation(self.ch, left_value, right_value)
+
+        if self.ch not in '+-':
             self.value = abs(return_value)
             return return_value
+
+        char_map = {'+': 1, '-': -1, 1: '+', -1: '-'}
+
+        left_opt = 1
+        right_opt = char_map[self.ch]
+
+        left_opt = _neg(left_opt, left_value)
+        left_value = _neg(left_value, left_value)
+        right_opt = _neg(right_opt, right_value)
+        right_value = _neg(right_opt, right_value)
+        left_opt = _neg(left_opt, return_value)
+        right_opt = _neg(right_opt, return_value)
+
+        if left_opt == 1:
+            self.ch = char_map[right_opt]
         else:
-            return self.value
+            self.ch = '-'
+            self.left, self.right = self.right, self.left
+
+        self.value = abs(return_value)
+        return return_value
 
     def all_equivalent_expression(self):
         """
