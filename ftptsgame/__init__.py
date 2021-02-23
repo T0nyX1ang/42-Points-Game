@@ -122,7 +122,7 @@ class FTPtsGame(object):
         node = build_node(math_expr)
         math_expr_value = node.evaluate()
         user_input_numbers = node.extract()
-        if math_expr_value != 42:
+        if math_expr_value != self.__target:
             raise ArithmeticError(str(math_expr_value))
         if tuple(sorted(user_input_numbers)) != self.__problem:
             raise ValueError('Unmatched input numbers.')

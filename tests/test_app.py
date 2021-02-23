@@ -91,7 +91,7 @@ class TestGameApp(unittest.TestCase):
     def test_throttle(self):
         # throttle tests for game time
         app = FTPtsGame()
-        app.generate_problem(problem=(1, 1, 6, 7, 12))
+        app.generate_problem(problem=[1, 1, 6, 7, 12])
         app.start()
         answer = ['(12*(1-1)+7)*6', '(12-7+1)*(6+1)', '12+(7-1)*(6-1)', '12/(1-(6-1)/7)', '(7+1+1)*6-12']
         for ans in answer:
@@ -115,3 +115,14 @@ class TestGameApp(unittest.TestCase):
         self.assertEqual(str(a), '(4-3+5)*(2-1)')
         a = build_node('9/(11/6-2)+12')
         self.assertEqual(str(a), '9/(2-11/6)-12')
+
+    def test_different_targets(self):
+        # additional tests for different target
+        app = FTPtsGame(target=48)
+        app.generate_problem(problem=[3, 4, 6, 8, 12])
+        app.start()
+        self.assertEqual(app.get_total_solution_number(), 48)
+        app.solve('4/3*(6*8-12)')
+        self.assertRaises(ArithmeticError, app.solve, '12*(8-4-3/6)')
+        self.assertRaises(LookupError, app.solve, '4*(6*8-12)/3')
+        app.stop()
