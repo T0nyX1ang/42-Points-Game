@@ -23,12 +23,13 @@ class FTPtsGame(object):
     solve(): put forward a solution and show solution intervals. (+)
     """
 
-    def __init__(self):
+    def __init__(self, target=42):
         """Start the game session, serving as an initialization."""
         self.__valid = []  # this list stores readable answers
         self.__formula = []  # this list stores converted formulas
         self.__players = []  # this list stores player statistics
         self.__playing = False  # this stores playing status
+        self.__target = target
 
     def __status_check(self, required_status: bool = True):
         """A status checker."""
@@ -50,7 +51,7 @@ class FTPtsGame(object):
         self.__status_check(required_status=False)
         self.__problem = tuple(sorted(problem))
         self.__problem_class = Problem(list(self.__problem))
-        self.__problem_class.generate_answers()
+        self.__problem_class.generate_answers(self.__target)
         if len(self.__problem_class.distinct_answer_table) == 0:
             raise ValueError('No solution found.')
 

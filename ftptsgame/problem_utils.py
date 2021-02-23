@@ -13,31 +13,30 @@ class Problem(object):
         self.problem = sorted(problem)
         self.answer_table = []
         self.distinct_answer_table = []
-        self.solution_number = -1
         self.equivalence_dict = {}
-        self.parent = {}
-        self.rank = {}
+        self.__parent = {}
+        self.__rank = {}
 
     def __root(self, uid):
         """Method for union set."""
-        if self.parent[uid] == uid:
+        if self.__parent[uid] == uid:
             return uid
         else:
-            self.parent[uid] = self.__root(self.parent[uid])
-            return self.parent[uid]
+            self.__parent[uid] = self.__root(self.__parent[uid])
+            return self.__parent[uid]
 
     def __union(self, uid1, uid2):
         """Method for union set."""
         uid1 = self.__root(uid1)
         uid2 = self.__root(uid2)
         if uid1 != uid2:
-            if self.rank[uid1] <= self.rank[uid2]:
-                self.parent[uid1] = uid2
-                self.rank[uid2] += (self.rank[uid1] == self.rank[uid2])
+            if self.__rank[uid1] <= self.__rank[uid2]:
+                self.__parent[uid1] = uid2
+                self.__rank[uid2] += (self.__rank[uid1] == self.__rank[uid2])
             else:
-                self.parent[uid2] = uid1
+                self.__parent[uid2] = uid1
 
-    def __classify(self, target=42, max_number=13):
+    def __classify(self, target):
         """
         Divide all answers into some equivalence classes.
 
@@ -60,12 +59,12 @@ class Problem(object):
             uid_table[uid] = expr
             uid_r1 = expr.unique_id_for_rule_1(values_list)
             if uid_r1 in uid_r1_table:
-                self.parent[uid] = uid_r1_table[uid_r1]
-                self.rank[uid] = 1
+                self.__parent[uid] = uid_r1_table[uid_r1]
+                self.__rank[uid] = 1
             else:
-                self.parent[uid] = uid
+                self.__parent[uid] = uid
                 uid_r1_table[uid_r1] = uid
-                self.rank[uid] = 2
+                self.__rank[uid] = 2
 
         for expr in answers:
             uid1 = expr.unique_id()
@@ -80,16 +79,14 @@ class Problem(object):
 
         return answers, return_dict
 
-    def generate_answers(self):
+    def generate_answers(self, target: int = 42):
         """Generate all answers divided into equivalence classes."""
-        self.answer_table, self.equivalence_dict = self.__classify()
+        self.answer_table, self.equivalence_dict = self.__classify(target)
         self.distinct_answer_table = []
-        self.solution_number = 0
         for expr in self.answer_table:
             uid = expr.unique_id()
             if self.equivalence_dict[uid] == uid:
                 self.distinct_answer_table.append(expr)
-                self.solution_number += 1
 
 
 def _combine_expr(left_set: list, right_set: list):
@@ -106,7 +103,7 @@ def _combine_expr(left_set: list, right_set: list):
             yield Node(Node.NODE_TYPE_OPERATOR, '/', left_expr, right_expr)
 
 
-def _get_all_expr(problem: list, length: int, target: int = 42) -> list:
+def _get_all_expr(problem: list, length: int, target: int) -> list:
     """Return the list of all possible expressions of a problem."""
     n = len(problem)
     if n == 1:
