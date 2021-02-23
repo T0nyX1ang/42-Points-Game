@@ -40,6 +40,7 @@ class TestGameApp(unittest.TestCase):
         app.generate_problem(problem=[6, 0, 0, 7, 0])
         app.start()
         self.assertEqual((0, 0, 0, 6, 7), app.get_current_problem())
+        self.assertEqual(1, app.get_total_solution_number())
         app.stop()
 
     def test_game_process(self):
