@@ -12,9 +12,9 @@ class Node(object):
     NODE_TYPE_NUMBER = 0
     NODE_TYPE_OPERATOR = 1
 
-    def __init__(self, type=NODE_TYPE_NUMBER, ch=None, left=None, right=None):
+    def __init__(self, _type=NODE_TYPE_NUMBER, ch=None, left=None, right=None):
         """Initialize the node."""
-        self.type = type
+        self.type = _type
         self.left = left
         self.right = right
         if self.type == Node.NODE_TYPE_OPERATOR:
@@ -57,9 +57,9 @@ class Node(object):
             return str(self.value)
 
         deal_l = self.ch in '*/' and self.left.ch in '+-'
-        deal_r = (self.ch in '-*/'
-                  and self.right.ch in '+-') or (self.ch == '/'
-                                                 and self.right.ch in '*/')
+        deal_r = (
+            self.ch in '-*/' and self.right.ch in '+-'
+        ) or (self.ch == '/' and self.right.ch in '*/')
         left_string = '(' * deal_l + repr(self.left) + ')' * deal_l
         right_string = '(' * deal_r + repr(self.right) + ')' * deal_r
         return left_string + self.ch + right_string
@@ -232,13 +232,13 @@ def _build_node(node) -> Node:
         type(ast.Div()): '/'
     }
     if isinstance(node, ast.BinOp) and type(node.op) in node_ref:
-        built_node = Node(type=Node.NODE_TYPE_OPERATOR,
+        built_node = Node(_type=Node.NODE_TYPE_OPERATOR,
                           ch=node_ref[type(node.op)],
                           left=_build_node(node.left),
                           right=_build_node(node.right))
     elif isinstance(node, ast.Num) and type(node.n) is int and node.n in list(
             range(0, 14)):
-        built_node = Node(type=Node.NODE_TYPE_NUMBER, ch=node.n)
+        built_node = Node(_type=Node.NODE_TYPE_NUMBER, ch=node.n)
     else:
         raise SyntaxError('Unallowed operator or operands.')
     return built_node
