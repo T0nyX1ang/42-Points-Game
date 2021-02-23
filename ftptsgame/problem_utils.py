@@ -50,6 +50,7 @@ class Problem(object):
         for _ in range(10):
             numbers = random.sample(range(500000, 1000000), n)
             values = {self.problem[i]: numbers[i] for i in range(n)}
+            values[0], values[1] = 0, 1
             values_list.append(values)
         answers = _get_all_expr(self.problem, n, target)
 
