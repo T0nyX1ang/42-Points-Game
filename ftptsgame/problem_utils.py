@@ -47,9 +47,10 @@ class Problem(object):
         """
         values_list = []
         n = len(self.problem)
+        dif = list(set(self.problem))  # different numbers of the problem
         for _ in range(10):
-            numbers = random.sample(range(500000, 1000000), n)
-            values = {self.problem[i]: numbers[i] for i in range(n)}
+            numbers = random.sample(range(500000, 1000000), len(dif))
+            values = {dif[i]: numbers[i] for i in range(len(dif))}
             values[0], values[1] = 0, 1
             values_list.append(values)
         answers = _get_all_expr(self.problem, n, target)
