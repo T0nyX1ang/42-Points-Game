@@ -9,6 +9,7 @@ from ftptsgame.expr_utils import build_node
 class TestGameApp(unittest.TestCase):
     def test_game_status(self):
         app = FTPtsGame()
+        self.assertRaises(PermissionError, app.get_current_target)
         self.assertRaises(PermissionError, app.get_current_problem)
         self.assertRaises(PermissionError, app.get_current_solutions)
         self.assertRaises(PermissionError, app.get_current_solution_number)
@@ -123,6 +124,7 @@ class TestGameApp(unittest.TestCase):
         app.generate_problem(problem=[3, 4, 6, 8, 12], target=48)
         app.start()
         self.assertEqual(app.get_total_solution_number(), 48)
+        self.assertEqual(app.get_current_target(), 48)
         app.solve('4/3*(6*8-12)')
         self.assertRaises(ArithmeticError, app.solve, '12*(8-4-3/6)')
         self.assertRaises(LookupError, app.solve, '4*(6*8-12)/3')

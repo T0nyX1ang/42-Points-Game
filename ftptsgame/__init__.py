@@ -55,6 +55,11 @@ class FTPtsGame(object):
         if len(self.__problem_class.distinct_answer_table) == 0:
             raise ValueError('No solution found.')
 
+    def get_current_target(self) -> int:
+        """Get current target. Effective when playing."""
+        self.__status_check(required_status=True)
+        return self.__target
+
     def get_current_problem(self) -> tuple:
         """Get current problem. Effective when playing."""
         self.__status_check(required_status=True)
