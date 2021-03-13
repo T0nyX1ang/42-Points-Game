@@ -119,8 +119,8 @@ class TestGameApp(unittest.TestCase):
 
     def test_different_targets(self):
         # additional tests for different target
-        app = FTPtsGame(target=48)
-        app.generate_problem(problem=[3, 4, 6, 8, 12])
+        app = FTPtsGame()
+        app.generate_problem(problem=[3, 4, 6, 8, 12], target=48)
         app.start()
         self.assertEqual(app.get_total_solution_number(), 48)
         app.solve('4/3*(6*8-12)')

@@ -1,8 +1,8 @@
 """Main module of this project."""
 
+import datetime
 from .expr_utils import Node, build_node
 from .problem_utils import Problem
-import datetime
 
 
 class FTPtsGame(object):
@@ -23,13 +23,12 @@ class FTPtsGame(object):
     solve(): put forward a solution and show solution intervals. (+)
     """
 
-    def __init__(self, target=42):
+    def __init__(self):
         """Start the game session, serving as an initialization."""
         self.__valid = []  # this list stores readable answers
         self.__formula = []  # this list stores converted formulas
         self.__players = []  # this list stores player statistics
         self.__playing = False  # this stores playing status
-        self.__target = target
 
     def __status_check(self, required_status: bool = True):
         """A status checker."""
@@ -46,9 +45,10 @@ class FTPtsGame(object):
         elapsed = datetime.datetime.now() - self.__timer
         return elapsed
 
-    def generate_problem(self, problem):
+    def generate_problem(self, problem, target=42):
         """Generate a problem manually."""
         self.__status_check(required_status=False)
+        self.__target = target
         self.__problem = tuple(sorted(problem))
         self.__problem_class = Problem(list(self.__problem))
         self.__problem_class.generate_answers(self.__target)
