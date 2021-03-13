@@ -113,10 +113,7 @@ def _get_all_expr(problem: list, length: int, target: int) -> list:
     return_list = []
     unique_id_set = set()
 
-    for mask in itertools.filterfalse(
-        lambda x: sum(x) == 0 or sum(x) == n,
-        itertools.product([0, 1], repeat=n)
-    ):
+    for mask in itertools.filterfalse(lambda x: sum(x) == 0 or sum(x) == n, itertools.product([0, 1], repeat=n)):
         left_prob, right_prob = [], []
         for i in range(n):
             left_prob.append(problem[i]) if mask[i] == 0 \
@@ -125,10 +122,7 @@ def _get_all_expr(problem: list, length: int, target: int) -> list:
         left_set = _get_all_expr(left_prob, length, target)
         right_set = _get_all_expr(right_prob, length, target)
 
-        for expr in itertools.filterfalse(
-            lambda x: x.value != target and n == length,
-            _combine_expr(left_set, right_set)
-        ):
+        for expr in itertools.filterfalse(lambda x: x.value != target and n == length, _combine_expr(left_set, right_set)):
             expr_id = expr.unique_id()
             if expr_id not in unique_id_set:
                 return_list.append(expr)

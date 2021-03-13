@@ -57,9 +57,7 @@ class Node(object):
             return str(self.value)
 
         deal_l = self.ch in '*/' and self.left.ch in '+-'
-        deal_r = (
-            self.ch in '-*/' and self.right.ch in '+-'
-        ) or (self.ch == '/' and self.right.ch in '*/')
+        deal_r = (self.ch in '-*/' and self.right.ch in '+-') or (self.ch == '/' and self.right.ch in '*/')
         left_string = '(' * deal_l + repr(self.left) + ')' * deal_l
         right_string = '(' * deal_r + repr(self.right) + ')' * deal_r
         return left_string + self.ch + right_string
@@ -69,8 +67,7 @@ class Node(object):
         if values is None:
             return self.value
         if self.type == Node.NODE_TYPE_OPERATOR:
-            return Node.operation(self.ch, self.left.evaluate(values),
-                                  self.right.evaluate(values))
+            return Node.operation(self.ch, self.left.evaluate(values), self.right.evaluate(values))
         else:
             return Fraction(values[int(self.value)])
 
@@ -87,6 +84,7 @@ class Node(object):
 
         The result of whole expression will become its absolute value.
         """
+
         def _neg(v1: Fraction, v2: Fraction) -> Fraction:
             return v1 * (1 - 2 * (v2 < 0))
 
@@ -155,34 +153,24 @@ class Node(object):
         if ((self.ch == '+' and right_value == 0) or
             (self.ch == '*' and right_value == 1)) \
                 and self.left.type == Node.NODE_TYPE_OPERATOR:
-            yield Node(
-                Node.NODE_TYPE_OPERATOR, self.left.ch,
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.left,
-                     self.right), self.left.right)
-            yield Node(
-                Node.NODE_TYPE_OPERATOR, self.left.ch, self.left.left,
-                Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.right,
-                     self.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, self.left.ch, Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.left,
+                                                                   self.right), self.left.right)
+            yield Node(Node.NODE_TYPE_OPERATOR, self.left.ch, self.left.left,
+                       Node(Node.NODE_TYPE_OPERATOR, self.ch, self.left.right, self.right))
 
         # Rule 4: (y+z)/x --> (x-y)/z, (x-z)/y when x=y+z
         if self.ch == '/' and self.left.ch == '+' and \
                 left_value == right_value and \
                 self.left.left.value != 0 and self.left.right.value != 0:
-            yield Node(
-                Node.NODE_TYPE_OPERATOR, '/',
-                Node(Node.NODE_TYPE_OPERATOR, '-', self.right, self.left.left),
-                self.left.right)
-            yield Node(
-                Node.NODE_TYPE_OPERATOR, '/',
-                Node(Node.NODE_TYPE_OPERATOR, '-', self.right,
-                     self.left.right), self.left.left)
+            yield Node(Node.NODE_TYPE_OPERATOR, '/', Node(Node.NODE_TYPE_OPERATOR, '-', self.right, self.left.left),
+                       self.left.right)
+            yield Node(Node.NODE_TYPE_OPERATOR, '/', Node(Node.NODE_TYPE_OPERATOR, '-', self.right, self.left.right),
+                       self.left.left)
 
         # Rule 5: x*(y/y) --> x+(y-y)
         if self.ch == '*' and self.right.ch == '/' and right_value == 1:
-            yield Node(
-                Node.NODE_TYPE_OPERATOR, '+', self.left,
-                Node(Node.NODE_TYPE_OPERATOR, '-', self.right.left,
-                     self.right.right))
+            yield Node(Node.NODE_TYPE_OPERATOR, '+', self.left,
+                       Node(Node.NODE_TYPE_OPERATOR, '-', self.right.left, self.right.right))
 
         # Rule 6: x_1/x_2 --> x_2/x_1
         if self.ch == '/' and left_value == right_value:
@@ -225,19 +213,13 @@ class Node(object):
 
 def _build_node(node) -> Node:
     """Convert an AST node to an expression node."""
-    node_ref = {
-        type(ast.Add()): '+',
-        type(ast.Sub()): '-',
-        type(ast.Mult()): '*',
-        type(ast.Div()): '/'
-    }
+    node_ref = {type(ast.Add()): '+', type(ast.Sub()): '-', type(ast.Mult()): '*', type(ast.Div()): '/'}
     if isinstance(node, ast.BinOp) and type(node.op) in node_ref:
         built_node = Node(_type=Node.NODE_TYPE_OPERATOR,
                           ch=node_ref[type(node.op)],
                           left=_build_node(node.left),
                           right=_build_node(node.right))
-    elif isinstance(node, ast.Num) and type(node.n) is int and node.n in list(
-            range(0, 14)):
+    elif isinstance(node, ast.Num) and type(node.n) is int and node.n in list(range(0, 14)):
         built_node = Node(_type=Node.NODE_TYPE_NUMBER, ch=node.n)
     else:
         raise SyntaxError('Unallowed operator or operands.')

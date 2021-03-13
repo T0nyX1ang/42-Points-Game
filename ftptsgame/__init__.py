@@ -81,12 +81,10 @@ class FTPtsGame(object):
         current_solution_set = set()
         for expr_str in self.__valid:
             node = build_node(expr_str)
-            current_solution_set.add(
-                self.__problem_class.equivalence_dict[node.unique_id()])
+            current_solution_set.add(self.__problem_class.equivalence_dict[node.unique_id()])
         return_list = []
         for expr in self.__problem_class.distinct_answer_table:
-            if self.__problem_class.equivalence_dict[
-                    expr.unique_id()] not in current_solution_set:
+            if self.__problem_class.equivalence_dict[expr.unique_id()] not in current_solution_set:
                 return_list.append(str(expr))
         return return_list
 
@@ -100,8 +98,7 @@ class FTPtsGame(object):
         class_id = self.__problem_class.equivalence_dict[node.unique_id()]
         for ind in range(0, len(self.__formula)):
             cmp_node = self.__formula[ind]
-            cmp_class_id = self.__problem_class.equivalence_dict[
-                cmp_node.unique_id()]
+            cmp_class_id = self.__problem_class.equivalence_dict[cmp_node.unique_id()]
             if cmp_class_id == class_id:
                 raise LookupError(self.__valid[ind])
 
@@ -110,8 +107,14 @@ class FTPtsGame(object):
         self.__status_check(required_status=True)
 
         replace_table = [
-            ('×', '*'), ('x', '*'), ('÷', '/'), (' ', ''),
-            ('\n', ''), ('\r', ''), ('（', '('), ('）', ')'),
+            ('×', '*'),
+            ('x', '*'),
+            ('÷', '/'),
+            (' ', ''),
+            ('\n', ''),
+            ('\r', ''),
+            ('（', '('),
+            ('）', ')'),
         ]
         for src, dest in replace_table:
             math_expr = math_expr.replace(src, dest)
