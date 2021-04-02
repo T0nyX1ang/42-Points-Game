@@ -128,12 +128,14 @@ class FTPtsGame(object):
             raise OverflowError('Maximum parsing length exceeded.')
 
         node = build_node(math_expr)
-        math_expr_value = node.evaluate()
+
         user_input_numbers = node.extract()
-        if math_expr_value != self.__target:
-            raise ArithmeticError(str(math_expr_value))
         if tuple(sorted(user_input_numbers)) != self.__problem:
             raise ValueError('Unmatched input numbers.')
+
+        math_expr_value = node.evaluate()
+        if math_expr_value != self.__target:
+            raise ArithmeticError(str(math_expr_value))
 
         self.__validate_repeated(node)
         self.__formula.append(node)
