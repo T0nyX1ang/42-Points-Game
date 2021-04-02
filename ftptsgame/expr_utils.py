@@ -219,7 +219,7 @@ def _build_node(node) -> Node:
                           ch=node_ref[type(node.op)],
                           left=_build_node(node.left),
                           right=_build_node(node.right))
-    elif isinstance(node, ast.Num) and type(node.n) is int and node.n in list(range(0, 14)):
+    elif isinstance(node, ast.Num) and type(node.n) is int:
         built_node = Node(_type=Node.NODE_TYPE_NUMBER, ch=node.n)
     else:
         raise SyntaxError('Unallowed operator or operands.')
