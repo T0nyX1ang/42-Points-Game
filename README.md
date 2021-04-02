@@ -13,13 +13,13 @@ Python implementation of the fourty-two points game.
 
 ## Design Logic
 This package is designed to __work as a core processing part__, providing:
-* Problem database
-* Problem generation (by user / in database)
-* Start / stop the game
-* Timer for solutions
-* Player statistics
-* Equivalent solution detection
-* A bunch of APIs and exceptions
+*   Problem database
+*   Problem generation (by user / in database)
+*   Start / stop the game
+*   Timer for solutions
+*   Player statistics
+*   Equivalent solution detection
+*   A bunch of APIs and exceptions
 
 This package is not designed to __fully implement everything__ with the game, so the formatting parts should be written by end-users. But don't worry, the API in this package is enough to create whatever you need.
 
@@ -49,14 +49,14 @@ After you have installed the package, you are almost done. If you want to try it
 Well, you can integrate this package into your projects by using just the same way, and you can format problems in all the ways you like.
 
 ## Exceptions
-* `PermissionError`: Raised during a status check, some methods must be used in the game, while other can't be used.
-* `TypeError`: Raised when the problem type is not defined.
-* `ValueError`: Raised when the parameter of generating a problem is invalid, or a user inputs unmatched numbers.
-* `OverflowError`: Raised when a user input a too long expression. (greater than 30 characters after beautifying)
-* `SyntaxError`: Raised when a user input an expression which can't be parsed.
-* `ArithmeticError`: Raised when a user inputs a wrong answer.
-* `LookupError`: Raised when a user inputs a repeated answer.
-* Other exceptions will be raised when an input fails built-in parameter checks.
+*   `PermissionError`: Raised during a status check, some methods must be used in the game, while other can't be used.
+*   `TypeError`: Raised when the problem type is not defined.
+*   `ValueError`: Raised when the parameter of generating a problem is invalid, or a user inputs unmatched numbers.
+*   `OverflowError`: Raised when a user input a too long expression. (greater than or equal to 30 characters after beautifying)
+*   `SyntaxError`: Raised when a user input an expression which can't be parsed.
+*   `ArithmeticError`: Raised when a user inputs a wrong answer.
+*   `LookupError`: Raised when a user inputs an equivalent answer.
+*   Other exceptions will be raised when an input fails built-in parameter checks.
 
 ## License
 This package is licensed under the `MIT License`.
